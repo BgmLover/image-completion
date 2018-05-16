@@ -22,13 +22,15 @@ private:
 
 	Point2i getLeftTopPoint (int point_index, int curve_index);
 	Point2i getLeftTopPoint(Point2i p);
-	Mat getOnePatch(Point2i p);
+	Point2i getAnchorPoint(AnchorPoint ap, int curve_index);
+	Mat getOnePatch(Point2i p,Mat &img);
 
-	double calcuEi(AnchorPoint unknown, AnchorPoint sample, int curve_index);
-	double calcuEs(AnchorPoint unknown, AnchorPoint sample, int curve_index);
-	double calcuE1(AnchorPoint unknown, AnchorPoint sample, int curve_index);
-	double calcuE2(AnchorPoint unknown1, AnchorPoint unknown2, AnchorPoint sample1, AnchorPoint sample2, int curve_index);
-
+	
+	float calcuEi(AnchorPoint unknown, AnchorPoint sample, int curve_index);
+	float calcuEs(AnchorPoint unknown, AnchorPoint sample, int curve_index);
+	float calcuE1(AnchorPoint unknown, AnchorPoint sample, int curve_index);
+	float calcuE2(AnchorPoint unknown1, AnchorPoint unknown2, AnchorPoint sample1, AnchorPoint sample2, int curve_index);
+	
 	vector<int> DP(vector<AnchorPoint>unknown, vector<AnchorPoint>sample, int curve_index);
 	//BP algorithm
 	//copy the patch

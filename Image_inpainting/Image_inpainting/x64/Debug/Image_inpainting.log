@@ -1,15 +1,29 @@
-﻿  Structure_propagation.cpp
+﻿  Image.cpp
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\mat.hpp(1964): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(91): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(105): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(109): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
   main.cpp
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\mat.hpp(1964): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  math_function.cpp
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\mat.hpp(1964): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\math_function.cpp(18): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\math_function.cpp(23): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+  Structure_propagation.cpp
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\mat.hpp(1964): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(83): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(84): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(227): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(241): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(245): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
   正在生成代码...
   Image_inpainting.vcxproj -> F:\SIGGRAPH\Image_comp\Image_inpainting\Image_inpainting\x64\Debug\Image_inpainting.exe
