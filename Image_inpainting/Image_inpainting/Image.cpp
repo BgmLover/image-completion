@@ -1,5 +1,5 @@
 #include"Image.h"
-
+#include<string>
 static int mouse_event;
 static Point2i mouse_pos;
 static int mouse_flags;
@@ -11,9 +11,9 @@ void on_MouseHandle(int event, int x, int y, int flags, void *param) {
 }
 void Image::getMask() {
 	Mat display = this->srcImage.clone();
-	
-	imshow("Get the mask", display);
-	setMouseCallback("Get the mask", on_MouseHandle);
+	const  string name = "Get the mask";
+	imshow(name, display);
+	setMouseCallback(name, on_MouseHandle);
 
 	int size = 40;
 
@@ -25,7 +25,7 @@ void Image::getMask() {
 		if (key == '=') { size++; }
 		else if (key == '-') { size = size - 1 > 0 ? size - 1 : 1; }
 		else if (key == 'q') { break; }
-		if ((mouse_event == CV_EVENT_MOUSEMOVE && (mouse_flags & CV_EVENT_FLAG_LBUTTON)) || (mouse_event == CV_EVENT_LBUTTONDOWN)) {
+		if ((mouse_event == CV_EVENT_MOUSEMOVE && (mouse_flags == CV_EVENT_FLAG_LBUTTON)) || (mouse_event == CV_EVENT_LBUTTONDOWN)) {
 			if (first) {
 				last_pos = mouse_pos;
 				first = false;
@@ -38,10 +38,10 @@ void Image::getMask() {
 			}
 		}
 		//circle(display, mouse_pos, size, Scalar(0, 0, 255));
-		imshow("Get the mask", display);
+		imshow(name, display);
 	}
 	
-	destroyWindow("Get the mask");
+	destroyWindow(name);
 	//imshow("mask", this->mask);
 	//imshow("wm", this->image_masked);
 	//waitKey();
@@ -49,5 +49,46 @@ void Image::getMask() {
 }
 
 void Image::getCurves() {
+	Mat display = this->image_masked.clone();
+	int size = 6;
+	const string namewindow = "Get the curves";
+	namedWindow(namewindow);
+	imshow(namewindow, display);
+	setMouseCallback(namewindow, on_MouseHandle);
 
+	vector<Point2i>one_curve;
+	Point2i last_pos(-1, -1);
+	Point2i linepoint(-1, -1);
+	while (true) {
+		char key = waitKey(20);
+		if (key == 'q') break;
+		//finish drawing one curve and save it 
+		else if (key == 'f') {
+			cout << one_curve.size() << endl;
+			if(one_curve.size()>0)
+				this->curve_points.push_back(one_curve);
+			one_curve.clear();
+		}
+		else if ((mouse_event == CV_EVENT_MOUSEMOVE && (mouse_flags == CV_EVENT_FLAG_LBUTTON)) ||
+			(mouse_event == CV_EVENT_LBUTTONDOWN)) {
+			if (last_pos != Point2i(-1, -1)) {
+				line(display, last_pos, mouse_pos, Scalar(0, 255, 0), size);
+
+				LineIterator it(display, last_pos, mouse_pos);
+
+				for (int i = 0; i < it.count; i++, it++) {
+					if (linepoint != it.pos()) {
+						one_curve.push_back(it.pos());
+						linepoint = it.pos();
+					}
+				}
+			}
+			
+			last_pos = mouse_pos;
+		}
+		else last_pos = Point2i(-1, -1);
+
+		imshow(namewindow, display);
+	}
+	return;
 }

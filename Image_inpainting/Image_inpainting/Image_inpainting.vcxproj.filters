@@ -21,6 +21,9 @@
     <ClCompile Include="Image.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Structure_propagation.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="C:\Users\Canglang\Pictures\2.png">
@@ -29,6 +32,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Structure_propagation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="param.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnchorPoint.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
