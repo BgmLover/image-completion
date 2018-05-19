@@ -9,7 +9,7 @@ using namespace std;
 class Structure_propagation {
 
 private:
-	Image image;
+	
 	vector<vector<AnchorPoint>> unknown_anchors;
 	vector<vector<AnchorPoint>> sample_anchors;
 
@@ -23,20 +23,26 @@ private:
 	Point2i getLeftTopPoint (int point_index, int curve_index);
 	Point2i getLeftTopPoint(Point2i p);
 	Point2i getAnchorPoint(AnchorPoint ap, int curve_index);
+	Rect getRect(AnchorPoint ap, int curve_index);
 	Mat getOnePatch(Point2i p,Mat &img);
+	Mat getOnePatch(AnchorPoint ap, Mat &img, int curve_index);
+	void copyPatchToImg(AnchorPoint unknown, Mat &patch, Mat &img, int curve_index);
 
-	
 	float calcuEi(AnchorPoint unknown, AnchorPoint sample, int curve_index);
 	float calcuEs(AnchorPoint unknown, AnchorPoint sample, int curve_index);
 	float calcuE1(AnchorPoint unknown, AnchorPoint sample, int curve_index);
 	float calcuE2(AnchorPoint unknown1, AnchorPoint unknown2, AnchorPoint sample1, AnchorPoint sample2, int curve_index);
 	
-	vector<int> DP(vector<AnchorPoint>unknown, vector<AnchorPoint>sample, int curve_index);
+	vector<int> DP(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index);
+
+	//need to be correct ,not done
+	
+	void getOneNewCurve(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index, bool flag);
 	//BP algorithm
-	//copy the patch
-	//get_a_new_curve
+	
 	
 public:
+	Image image;
 	Structure_propagation() = default;
 	Structure_propagation(Mat src) { image = *(new Image(src));}
 	void getMask() { image.getMask(); }
@@ -44,5 +50,5 @@ public:
 	void getAnchors();
 	void drawAnchors();//for debug
 	void getNewStructure();
-
+	void testOneCurve();
 };

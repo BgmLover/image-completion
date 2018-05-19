@@ -45,8 +45,11 @@ float Structure_propagation::calcuEi(AnchorPoint unknown, AnchorPoint sample, in
 }
 
 float Structure_propagation::calcuE1(AnchorPoint unknown, AnchorPoint sample, int curve_index) {
-
-	return KS * calcuEs(unknown, sample, curve_index) + KI * calcuEi(unknown, sample, curve_index);
+	//return KS * calcuEs(unknown, sample, curve_index) + KI * calcuEi(unknown, sample, curve_index);
+	float  Es = calcuEs(unknown, sample, curve_index);
+	float  Ei = calcuEi(unknown, sample, curve_index);
+	//cout << "Es=" << KS*Es << "  " << "Ei=" << KI*Ei << endl;
+	return KS * Es + KI * Ei;
 }
 
 
@@ -74,11 +77,12 @@ float Structure_propagation::calcuE2(AnchorPoint unknown1, AnchorPoint unknown2,
 	float result;
 	//calculate the SSD of the overlap parts of two sample patches 
 	result = calcuSSD(copy1(intersect), copy2(intersect));
-
+	//for debug
+	//cout << "E2=" << result << endl;
 	return result;
 }
 
-vector<int> Structure_propagation::DP(vector<AnchorPoint>unknown, vector<AnchorPoint>sample, int curve_index) {
+vector<int> Structure_propagation::DP(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index) {
 
 	int unknown_size = unknown.size();
 	int sample_size = sample.size();
@@ -130,19 +134,58 @@ vector<int> Structure_propagation::DP(vector<AnchorPoint>unknown, vector<AnchorP
 	label.push_back(last_patch);
 	//back tracing
 	if (unknown_size > 1) {
-		for (int i = unknown_size - 1; i > 0; i) {
+		for (int i = unknown_size - 1; i > 0; i--) {
 			last_patch = last_point[i][last_patch];
 			label.push_back(last_patch);
 		}
 	}
 
 	reverse(label.begin(), label.end());
-
+	for (int i = 0; i < unknown_size; i++) {
+		delete[] M[i];
+		delete[] last_point[i];
+	}
+	delete[] M;
+	delete[] last_point;
 	//for debug
 	cout << "The min energy of curve " << curve_index << " is " << tmp_min << endl;
 	cout << "The size of the sample patch: " << label.size() << endl;
 	cout << "DP is done" << endl;
 	return label;
+}
+
+
+void Structure_propagation::getOneNewCurve(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index, bool flag) {
+	vector<int>label;
+	if (flag) {
+		label = DP(unknown, sample, curve_index);
+	}
+	else {
+		//BP
+	}
+	if (unknown.size() != label.size()) {
+		cout << "In getOneNewCurve: The sizes of unknown and label are different" << endl;
+		throw exception();
+	}
+	for (int i = 0; i < unknown.size(); i++) {
+		Mat patch = getOnePatch(sample[label[i]], image.srcImage, curve_index);
+		copyPatchToImg(unknown[i], patch, image.image_inpainted, curve_index);	
+	}
+
+	for (int i = 0; i < unknown_anchors[0].size(); i++) {
+		cout << getAnchorPoint(unknown_anchors[0][i], 0) << endl;
+	}
+}
+
+//for debug
+void Structure_propagation::testOneCurve() {
+	imwrite("mask.png", image.mask);
+	imwrite("img_mask.png", image.image_masked);
+	imwrite("img_inpaint.png", image.image_inpainted);
+	getOneNewCurve(unknown_anchors[0], sample_anchors[0], 0, true);
+	imshow("Get one curve", image.image_inpainted);
+	imshow("srcImg", image.srcImage);
+	waitKey();
 }
 
 //for debug
@@ -181,8 +224,13 @@ void Structure_propagation::getAnchors() {
 		sample.clear();
 		unknown.clear();
 	}
+	cout <<"The size of unknown_anchors[0]="<< unknown_anchors[0].size() << endl;
+	for (int i = 0; i < unknown_anchors[0].size(); i++) {
+		cout << getAnchorPoint(unknown_anchors[0][i],0) << endl;
+	}
 
 }
+
 //get all the anchor points on the one curve
 void Structure_propagation::getOneCurveAnchors(int curve_index, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample){
 	PointType type;
@@ -215,6 +263,7 @@ void Structure_propagation::getOneCurveAnchors(int curve_index, vector<AnchorPoi
 
 		last_index = now_index;
 	}
+	sample.pop_back();//the last sample patch does't have enough points on the curve
 }
 
 int Structure_propagation::getOneAnchorPos(int lastanchor_index, PointType &t, int curve_index,bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample){
@@ -264,6 +313,21 @@ Mat Structure_propagation::getOnePatch(Point2i p,Mat &img) {
 	img(rec).copyTo(patch);
 	return patch;
 }
+Mat Structure_propagation::getOnePatch(AnchorPoint ap, Mat &img, int curve_index) {
+	Mat patch;
+	Rect rec = getRect(ap, curve_index);
+	if (rec.x<0 || rec.y<0 || rec.x + rec.width>img.cols || rec.y + rec.height>img.rows) {
+		cout << "exception:" << rec.x << "   " << rec.y << "when getting one patch" << endl;
+		throw exception();
+	}
+	img(rec).copyTo(patch);
+	return patch;
+}
+void Structure_propagation::copyPatchToImg(AnchorPoint unknown, Mat &patch, Mat &img, int curve_index) {
+	Rect rec = getRect(unknown, curve_index);
+	//need to be correct ,to be done
+	patch.copyTo(img(rec));
+}
 
 Point2i Structure_propagation::getLeftTopPoint(int point_index, int curve_index) {
 	Point2i p = image.curve_points[curve_index][point_index];
@@ -281,4 +345,11 @@ Point2i Structure_propagation::getLeftTopPoint(Point2i p) {
 
 Point2i Structure_propagation::getAnchorPoint(AnchorPoint ap, int curve_index) {
 	return image.curve_points[curve_index][ap.anchor_point];
+}
+
+Rect Structure_propagation::getRect(AnchorPoint ap, int curve_index) {
+	Point2i p = image.curve_points[curve_index][ap.anchor_point];
+	Point2i left_top = p - Point2i(PatchSizeCol/2, PatchSizeRow/2);
+	Point2i right_down = left_top + Point2i(PatchSizeCol , PatchSizeRow);
+	return Rect(left_top, right_down);
 }

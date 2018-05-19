@@ -40,10 +40,11 @@ void Image::getMask() {
 		//circle(display, mouse_pos, size, Scalar(0, 0, 255));
 		imshow(name, display);
 	}
-	
+	this->image_inpainted = image_masked.clone();
 	destroyWindow(name);
 	//imshow("mask", this->mask);
 	//imshow("wm", this->image_masked);
+	//imshow("src",this->srcImage);
 	//waitKey();
 	return;
 }
