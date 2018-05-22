@@ -203,7 +203,87 @@ bool Structure_propagation::isIntersect(int curve1, int curve2) {
 }
 
 vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index) {
+	cout << "begin to BP ... ..." << endl;
 
+	vector<int>label;
+	int unknown_size = unknown.size();
+	int sample_size = sample.size();
+
+	float ***M = new float**[unknown_size];//unknown_times*unknown_size*sample_size
+	float **E1 = new float*[unknown_size];//unknonw_size*sample_size
+
+	//initilize the array
+	for (int i = 0; i < unknown_size; i++) {
+		E1[i] = new float[sample_size];
+		M[i] = new float*[unknown_size];
+		for (int j = 0; j < unknown_size; j++) {
+			M[i][j] = new float[sample_size];
+			initArray(M[i][j], sample_size);
+		}
+	}
+
+	//to calculate the matrix E1 for the convenience of the next calculation
+	for (int i = 0; i < unknown_size; i++) {
+		for (int j = 0; j < sample_size; j++) {
+			E1[i][j] = calcuE1(unknown[i], sample[j], curve_index);
+		}
+	}
+	//to judge if the node has been converged
+	bool **isConverge = new bool*[unknown_size];
+	for (int i = 0; i < unknown_size; i++) {
+		initArray(isConverge[i], unknown_size);
+	}
+
+
+	float *sum_vec = new float[sample_size];//the sum of vectors from neighbors
+	float *E_M_sum = new float[sample_size];//sum_vec-M[j][i]+E[i]
+	float *new_vec = new float[sample_size];//the final vector calculated for M[i][j]
+
+	//begin to iterate
+	for (int t = 0; t < unknown_size; t++) {
+		for (int node = 0; node < unknown_size; node++) {
+			//calcaulate the sum of M[t-1][i][j]
+			initArray(sum_vec, sample_size);
+			for (int neighbor_index = 0; neighbor_index < unknown[node].neighbors.size(); neighbor_index++) {
+				//neighbors to node
+				addArray(sum_vec, M[neighbor_index][node],sum_vec,sample_size);
+			}
+			//node to neighbors
+			for (int neighbor_index = 0; neighbor_index < unknown[node].neighbors.size(); neighbor_index++) {
+				if (isConverge[node][neighbor_index] == true) {
+					continue;
+				}
+				minusArray(sum_vec, M[neighbor_index][node], E_M_sum, sample_size);
+				addArray(E_M_sum, E1[node], E_M_sum,sample_size);
+				
+				for (int xj = 0; xj < sample_size; xj++) {
+					float min = FLT_MAX;
+					for (int xi = 0; xi < sample_size; xi++) {
+						float E2 = calcuE2(unknown[node], unknown[neighbor_index], sample[xi], sample[xj], curve_index);
+						float sum = E2 + E_M_sum[xi];
+						if (sum < min) {
+							min = sum;
+						}
+					}
+					new_vec[xj] = min;
+				}
+				//to judge if the vector has been converged
+				bool flag = isEqualArray(M[node][neighbor_index], new_vec,sample_size);
+				if (flag) {
+					isConverge[node][neighbor_index] = true;
+				}
+				else {
+					moveArray(M[node][neighbor_index], new_vec, sample_size);
+				}
+			}
+
+		}
+	}
+
+	//after iteration,we need to find the optimum label for every node
+
+
+	
 }
 
 void Structure_propagation::addNeighborFB(int curve_index) {

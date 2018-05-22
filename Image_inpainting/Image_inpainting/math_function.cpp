@@ -31,3 +31,43 @@ float calcuDistance(vector<Point2i>ci, vector<Point2i>cxi) {
 	return result;
 }
 
+void initArray(float*a, int num) {
+	for (int i = 0; i < num; i++) {
+		a[i] = 0;
+	}
+}
+void initArray(int *a, int num) {
+	for (int i = 0; i < num; i++) {
+		a[i] = 0;
+	}
+}
+void initArray(bool*a, int num) {
+	for (int i = 0; i < num; i++) {
+		a[i] = false;
+	}
+}
+
+void minusArray(float*a, float*b, float *c, int num);
+void addArray(float*a, float*b, float*c, int num) {
+	for (int i = 0; i < num; i++) {
+		a[i] = a[i] + b[i];
+	}
+}
+void minusArray(float*a, float*b, float *c, int num) {
+	for (int i = 0; i < num; i++) {
+		a[i] = a[i] - b[i];
+	}
+}
+bool isEqualArray(float *a, float*b, int num) {
+	for (int i = 0; i < num; i++) {
+		if (a[i] != b[i]) {
+			return false;
+		}
+	}
+	return true;
+}
+void moveArray(float*a, float*b, int num) {
+	for (int i = 0; i < num; i++) {
+		a[i] = b[i];
+	}
+}

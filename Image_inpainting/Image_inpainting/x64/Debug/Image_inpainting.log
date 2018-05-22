@@ -7,11 +7,11 @@ f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\struct
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(98): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(176): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(177): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(218): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(237): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(238): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(321): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(410): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(424): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(222): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(241): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(242): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(325): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(414): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(428): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(432): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
   Image_inpainting.vcxproj -> F:\SIGGRAPH\Image_comp\Image_inpainting\Image_inpainting\x64\Debug\Image_inpainting.exe
