@@ -24,6 +24,7 @@ private:
 	Point2i getLeftTopPoint(Point2i p);
 	Point2i getAnchorPoint(AnchorPoint ap, int curve_index);
 	Rect getRect(AnchorPoint ap, int curve_index);
+	Rect getRect(Point2i p);
 	Mat getOnePatch(Point2i p,Mat &img);
 	Mat getOnePatch(AnchorPoint ap, Mat &img, int curve_index);
 	void copyPatchToImg(AnchorPoint unknown, Mat &patch, Mat &img, int curve_index);
@@ -34,11 +35,17 @@ private:
 	float calcuE2(AnchorPoint unknown1, AnchorPoint unknown2, AnchorPoint sample1, AnchorPoint sample2, int curve_index);
 	
 	vector<int> DP(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index);
+	vector<int> BP(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index);
+	//to judge if two points are neighbor
+	bool isNeighbor(Point2i point1, Point2i point2);
+	bool isIntersect(int curve1, int curve2);
+	//add the front and the behind anchor point as the neighbor
+	void addNeighborFB(int curve_index);
+	//to find the intersecting curves and merge them into the first curve
+	void mergeCurves(vector<bool>&isSingle);
 
 	//need to be correct ,not done
-	
 	void getOneNewCurve(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index, bool flag);
-	//BP algorithm
 	
 	
 public:
