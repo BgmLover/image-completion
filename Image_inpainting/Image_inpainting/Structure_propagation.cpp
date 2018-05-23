@@ -231,6 +231,7 @@ vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<Anchor
 	//to judge if the node has been converged
 	bool **isConverge = new bool*[unknown_size];
 	for (int i = 0; i < unknown_size; i++) {
+		isConverge[i] = new bool[unknown_size];
 		initArray(isConverge[i], unknown_size);
 	}
 
@@ -249,7 +250,8 @@ vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<Anchor
 				addArray(sum_vec, M[neighbor_index][node],sum_vec,sample_size);
 			}
 			//node to neighbors
-			for (int neighbor_index = 0; neighbor_index < unknown[node].neighbors.size(); neighbor_index++) {
+			for (int times = 0; times < unknown[node].neighbors.size(); times++) {
+				int neighbor_index = unknown[node].neighbors[times];
 				if (isConverge[node][neighbor_index] == true) {
 					continue;
 				}
@@ -281,9 +283,41 @@ vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<Anchor
 	}
 
 	//after iteration,we need to find the optimum label for every node
-
-
-	
+	for (int i = 0; i < unknown_size; i++) {
+		initArray(sum_vec, sample_size);
+		addArray(sum_vec, E1[i], sum_vec,sample_size);
+		for (int j = 0; j < unknown[i].neighbors.size(); j++) {
+			//neighbor to node
+			addArray(sum_vec, M[j][i], sum_vec, sample_size);
+		}
+		//find the min label
+		float min = FLT_MAX;
+		int label_index = 0;
+		for (int i = 0; i < sample_size; i++) {
+			if (sum_vec[i] < min) {
+				min = sum_vec[i];
+				label_index = i;
+			}
+		}
+		label.push_back(label_index);
+	}
+	delete[] new_vec;
+	delete[] sum_vec;
+	delete[] E_M_sum;
+	for (int i = 0; i < unknown_size; i++) {
+		delete[] isConverge[i];
+		delete[] E1[i];
+		for (int j = 0; j < unknown_size; j++) {
+			delete[]M[i][j];
+		}
+	}
+	delete[] isConverge;
+	delete[] E1;
+	for (int i = 0; i < unknown_size; i++) {
+		delete[]M[i];
+	}
+	delete[] M;
+	return label;
 }
 
 void Structure_propagation::addNeighborFB(int curve_index) {
@@ -358,7 +392,7 @@ void Structure_propagation::getOneNewCurve(vector<AnchorPoint>&unknown, vector<A
 		label = DP(unknown, sample, curve_index);
 	}
 	else {
-		//BP
+		label = BP(unknown, sample, curve_index);
 	}
 	if (unknown.size() != label.size()) {
 		cout << endl << "In getOneNewCurve() : The sizes of unknown and label are different" << endl;
@@ -427,6 +461,7 @@ void Structure_propagation::getNewStructure() {
 	imshow("srcImg", image.srcImage);
 	waitKey();
 }
+
 //get all the anchor points in the image and save them
 void Structure_propagation::getAnchors() {
 	vector<AnchorPoint>unknown, sample;
@@ -481,7 +516,8 @@ void Structure_propagation::getOneCurveAnchors(int curve_index, vector<AnchorPoi
 	/*the last sample patch does't have enough points on the curve,  so we need to abort it in case that when calculating energy Es,
 	the result will be much more little than other patches and influence chooing the right patch
 	*/
-	sample.pop_back();
+	if(sample.size()>0)
+		sample.pop_back();
 }
 
 int Structure_propagation::getOneAnchorPos(int lastanchor_index, PointType &t, int curve_index,bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample){
@@ -506,11 +542,13 @@ int Structure_propagation::getOneAnchorPos(int lastanchor_index, PointType &t, i
 			t = BORDER;
 			if (flag) {
 				int count = sample.size();
-				sample[count-1].type = BORDER;
+				if(count>0)
+					sample[count-1].type = BORDER;
 			}
 			else {
 				int count = unknown.size();
-				unknown[count - 1].type = BORDER;
+				if (count>0)
+					unknown[count - 1].type = BORDER;
 			}
 		}
 		i++;
@@ -531,6 +569,7 @@ Mat Structure_propagation::getOnePatch(Point2i p,Mat &img) {
 	img(rec).copyTo(patch);
 	return patch;
 }
+
 Mat Structure_propagation::getOnePatch(AnchorPoint ap, Mat &img, int curve_index) {
 	Mat patch;
 	Rect rec = getRect(ap, curve_index);
@@ -541,6 +580,7 @@ Mat Structure_propagation::getOnePatch(AnchorPoint ap, Mat &img, int curve_index
 	img(rec).copyTo(patch);
 	return patch;
 }
+
 void Structure_propagation::copyPatchToImg(AnchorPoint unknown, Mat &patch, Mat &img, int curve_index) {
 	Rect rec = getRect(unknown, curve_index);
 	//need to be correct ,to be done
@@ -571,6 +611,7 @@ Rect Structure_propagation::getRect(AnchorPoint ap, int curve_index) {
 	Point2i right_down = left_top + Point2i(PatchSizeCol , PatchSizeRow);
 	return Rect(left_top, right_down);
 }
+
 Rect Structure_propagation::getRect(Point2i p) {
 	Point2i left_top = p - Point2i(PatchSizeCol / 2, PatchSizeRow / 2);
 	Point2i right_down = left_top + Point2i(PatchSizeCol, PatchSizeRow);

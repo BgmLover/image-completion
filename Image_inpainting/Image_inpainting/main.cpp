@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 void test(){
 	//Mat a = imread("test1.jpg");
-	Mat a = imread("2.png");
+	Mat a = imread("test1.jpg");
 	Structure_propagation s(a);
 	s.getMask();
 	s.getCurves();
