@@ -1,7 +1,7 @@
 #pragma once
 #include<vector>
 #include<opencv2\opencv.hpp>
-
+#include"param.h"
 using namespace cv;
 using namespace std;
 

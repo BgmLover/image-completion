@@ -1,5 +1,6 @@
 #include"Image.h"
 #include<string>
+
 static int mouse_event;
 static Point2i mouse_pos;
 static int mouse_flags;
@@ -88,8 +89,10 @@ void Image::getCurves() {
 			last_pos = mouse_pos;
 		}
 		else last_pos = Point2i(-1, -1);
-
 		imshow(namewindow, display);
+	}
+	if (!ifshowCurves) {
+		destroyWindow(namewindow);
 	}
 	return;
 }

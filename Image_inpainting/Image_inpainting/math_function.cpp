@@ -26,7 +26,7 @@ float calcuDistance(vector<Point2i>ci, vector<Point2i>cxi) {
 				shortest = sq;
 			}
 		}
-		result += sq;
+		result += shortest;
 	}
 	return result;
 }
@@ -70,4 +70,10 @@ void moveArray(float*a, float*b, int num) {
 	for (int i = 0; i < num; i++) {
 		a[i] = b[i];
 	}
+}
+bool contain(Rect &rec, Point2i &p) {
+	if (p.x >= rec.x&&p.x <= rec.x + rec.width && p.y >= rec.y&&p.y <= rec.y + rec.height) {
+		return true;
+	}
+	return false;
 }

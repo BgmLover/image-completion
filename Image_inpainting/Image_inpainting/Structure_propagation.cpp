@@ -28,9 +28,12 @@ float Structure_propagation::calcuEs(AnchorPoint unknown, AnchorPoint sample, in
 		cxi.push_back(p - origin_sample);
 	}
 
-	float result = calcuDistance(ci, cxi) + calcuDistance(cxi, ci);
+	
+	int num_ci = unknown.end_point - unknown.begin_point + 1;
+	int num_cxi = sample.end_point - sample.begin_point + 1;
+	float result = calcuDistance(ci, cxi)/num_ci + calcuDistance(cxi, ci)/num_ci;
 	//normalized the sum of the shortest distance
-	result /= (unknown.end_point - unknown.begin_point + 1);
+	//result /= (unknown.end_point - unknown.begin_point + 1);
 
 	return result;
 }
@@ -104,20 +107,30 @@ vector<int> Structure_propagation::DP(vector<AnchorPoint>&unknown, vector<Anchor
 
 	float **M = new float*[unknown_size];
 	int **last_point = new int*[unknown_size];
+	float **E1 = new float*[unknown_size];//unknonw_size*sample_size
+
 	for (int i = 0; i < unknown_size; i++) {
 		M[i] = new float[sample_size];
 		last_point[i] = new int[sample_size];
+		E1[i] = new float[sample_size];
+	}
+
+	
+	for (int i = 0; i < unknown_size; i++) {
+		for (int j = 0; j < sample_size; j++) {
+			E1[i][j] = calcuE1(unknown[i], sample[j], curve_index);
+		}
 	}
 	//initialize M[0]
 	for (int i = 0; i < sample_size; i++) {
-		M[0][i] = calcuE1(unknown[0], sample[i], curve_index);
+		M[0][i] = E1[0][i];
 	}
 	//calculate the M[i][j]
 	for (int i = 1; i < unknown_size; i++) {
 		for (int j = 0; j < sample_size; j++) {
 			float min = FLT_MAX;
 			int min_index = 0;
-			float E1 = calcuE1(unknown[i], sample[j], curve_index);
+			float E_1 = E1[i][j];
 			// find the sample anchor t to make the Mi to be mininum
 			for (int t = 0; t < sample_size; t++) {
 				float tmp = calcuE2(unknown[i - 1], unknown[i], sample[t], sample[j], curve_index) + M[i - 1][t];
@@ -126,11 +139,29 @@ vector<int> Structure_propagation::DP(vector<AnchorPoint>&unknown, vector<Anchor
 					min_index = t;
 				}
 			}
-			M[i][j] = E1 + min;
+			M[i][j] = E_1 + min;
 			last_point[i][j] = min_index;
 		}
 	}
-
+	//for debug
+	if (ifshowDP_E1) {
+		cout << "E1[i][j]:" << endl;
+		for (int i = 0; i < unknown_size; i++) {
+			for (int j = 0; j < sample_size; j++) {
+				cout << "(" << i << ',' << j << ")=" << E1[i][j] << "  ";
+			}
+			cout << endl;
+		}
+	}
+	if (ifshowDP_M) {
+		cout << "M[i][j]:" << endl;
+		for (int i = 0; i < unknown_size; i++) {
+			for (int j = 0; j < sample_size; j++) {
+				cout << "(" << i << ',' << j << ")=" << M[i][j] << "  ";
+			}
+			cout << endl;
+		}
+	}
 	vector<int>label;
 	// find the best patch for the last unknown anchor point
 	int last_patch = 0;
@@ -154,13 +185,23 @@ vector<int> Structure_propagation::DP(vector<AnchorPoint>&unknown, vector<Anchor
 	for (int i = 0; i < unknown_size; i++) {
 		delete[] M[i];
 		delete[] last_point[i];
+		delete[] E1[i];
 	}
 	delete[] M;
+	delete[] E1;
 	delete[] last_point;
 	//for debug
-	cout << "The min energy of curve " << curve_index << " is " << tmp_min << endl;
-	cout << "The size of the sample patch: " << label.size() << endl;
+	if (ifshowDPlabel) {
+		cout << "The min energy of curve " << curve_index << " is " << tmp_min << endl;
+		cout << "The size of the sample patch: " << label.size() << endl;
+		for (int i = 0; i < label.size(); i++) {
+			cout << label[i] << " ";
+		}
+		cout << endl;
+	}
+
 	cout << "DP is done" << endl;
+
 	return label;
 }
 
@@ -228,6 +269,17 @@ vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<Anchor
 			E1[i][j] = calcuE1(unknown[i], sample[j], curve_index);
 		}
 	}
+
+	if (ifshowDP_E1) {
+		cout << "E1[i][j]:" << endl;
+		for (int i = 0; i < unknown_size; i++) {
+			for (int j = 0; j < sample_size; j++) {
+				cout << "(" << i << ',' << j << ")=" << E1[i][j] << "  ";
+			}
+			cout << endl;
+		}
+	}
+
 	//to judge if the node has been converged
 	bool **isConverge = new bool*[unknown_size];
 	for (int i = 0; i < unknown_size; i++) {
@@ -317,7 +369,14 @@ vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<Anchor
 		delete[]M[i];
 	}
 	delete[] M;
+	if (ifshowBPlabel) {
+		for (int i = 0; i < label.size(); i++) {
+			cout << label[i] << " ";
+		}
+		cout << endl;
+	}
 	return label;
+
 }
 
 void Structure_propagation::addNeighborFB(int curve_index) {
@@ -458,7 +517,8 @@ void Structure_propagation::getNewStructure() {
 		}
 	}
 	imshow("Get one curve", image.image_inpainted);
-	imshow("srcImg", image.srcImage);
+	if(ifshowsrcImg)
+		imshow("srcImg", image.srcImage);
 	waitKey();
 }
 
@@ -473,51 +533,168 @@ void Structure_propagation::getAnchors() {
 		sample.clear();
 		unknown.clear();
 	}
-	cout <<"The size of unknown_anchors[0]="<< unknown_anchors[0].size() << endl;
-	for (int i = 0; i < unknown_anchors[0].size(); i++) {
-		cout << getAnchorPoint(unknown_anchors[0][i],0) << endl;
-	}
+	cout << endl;
+	//cout <<"The size of unknown_anchors[0]="<< unknown_anchors[0].size() << endl;
+	//for (int i = 0; i < unknown_anchors[0].size(); i++) {
+	//	cout << getAnchorPoint(unknown_anchors[0][i],0) << endl;
+	//}
 
 }
 
 //get all the anchor points on the one curve
+int Structure_propagation::getOneAnchorFront(int lastanchor_index, PointType &t, int curve_index, bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample) {
+	Point2i p = image.curve_points[curve_index][lastanchor_index];
+	Rect rec = getRect(p);
+	int i = lastanchor_index + 1;
+	if (i >= image.curve_points[curve_index].size() - 1) {
+		return image.curve_points[curve_index].size() - 1;
+	}
+	if (image.mask.at<uchar>(image.curve_points[curve_index][i]) == 0) {
+		t = INNER;
+	}
+	else {
+		t = OUTER;
+	}
+	while (i < image.curve_points[curve_index].size() && contain(rec,image.curve_points[curve_index][i])) {
+		uchar tmp = image.mask.at<uchar>(image.curve_points[curve_index][i]);
+		if (tmp == 0 && t == OUTER || tmp == 255 && t == INNER) {
+			t = BORDER;
+			if (flag) {
+				int count = sample.size();
+				if (count>0)
+					sample[count - 1].type = BORDER;
+			}
+			else {
+				int count = unknown.size();
+				if (count>0)
+					unknown[count - 1].type = BORDER;
+			}
+		}
+		i++;
+	}
+	return i;
+}
+int Structure_propagation::getOneAnchorBack(int lastanchor_index, PointType &t, int curve_index, bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample) {
+	Point2i p = image.curve_points[curve_index][lastanchor_index];
+	Rect rec = getRect(p);
+	int i = lastanchor_index - 1;
+	t = OUTER;
+	while (i >= 0 && contain(rec, image.curve_points[curve_index][i])) {
+		i--;
+	}
+	if (i < 0) {
+		return -1;
+	}
+	return i;
+}
 void Structure_propagation::getOneCurveAnchors(int curve_index, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample){
+	//Point2i unknown_begin;
+	int unknown_begin;
+	int num_points = image.curve_points[curve_index].size();
+	for (int i = 0; i < num_points; i++) {
+		if (image.mask.at<uchar>(image.curve_points[curve_index][i]) == 0) {
+			unknown_begin = i;
+			break;
+		}
+	}
 	PointType type;
-	int last_index = 0;
-	int now_index = 0;
-	
 	bool flag = true;
+	//find all the unknown anchor points
+	int now_index, last_index;
+
+	last_index = unknown_begin;
 	while (true) {
+		if (last_index < 0) {
+			break;
+		}
+		now_index = getOneAnchorBack(last_index, type, curve_index, flag, unknown, sample);
+		if (now_index < 0) {
+			break;
+		}
+		if (last_index != unknown_begin) {
+				sample[sample.size() - 1].begin_point = now_index + 1;
+		}
+		AnchorPoint anchor(now_index, last_index-1, now_index, type);
+		sample.push_back(anchor);
+		last_index = now_index;
+	}
+	//this point doesn't have enough points in the patch
+	if(sample.size()>0){
+		sample.pop_back();
+		reverse(sample.begin(), sample.end());
+	}
 
-		now_index = getOneAnchorPos(last_index, type, curve_index,flag,unknown,sample);
 
+	int first_unknown_begin = getOneAnchorBack(unknown_begin, type, curve_index, flag, unknown, sample) + 1;
+	now_index = unknown_begin;
+	last_index = unknown_begin;
+	AnchorPoint anchor(first_unknown_begin, now_index, now_index, BORDER);
+	unknown.push_back(anchor);
+
+	while (true) {
+		now_index = getOneAnchorFront(now_index, type, curve_index, flag, unknown, sample);
 		if (now_index >= image.curve_points[curve_index].size() - 1)
 			break;
-
-		if (last_index != 0) {
-			if (flag)
-				sample[sample.size() - 1].end_point = now_index-1;
-			else
-				unknown[unknown.size() - 1].end_point = now_index-1;
+		if (flag) {
+			unknown[unknown.size() - 1].end_point = now_index - 1;
 		}
-		AnchorPoint anchor(last_index+1, now_index, now_index, type);
-		if (anchor.type == OUTER){
+		else {
+			sample[sample.size() - 1].end_point = now_index - 1;
+		}
+		AnchorPoint anchor(last_index + 1, now_index, now_index, type);
+		if (anchor.type == OUTER) {
 			sample.push_back(anchor);
-			flag = true;
+			flag = false;
 		}
 		else {
 			unknown.push_back(anchor);
-			flag = false;
+			flag = true;
 		}
-
 		last_index = now_index;
 	}
 
-	/*the last sample patch does't have enough points on the curve,  so we need to abort it in case that when calculating energy Es,
-	the result will be much more little than other patches and influence chooing the right patch
-	*/
-	if(sample.size()>0)
+	if (flag) {
+		unknown.pop_back();
+	}
+	else {
 		sample.pop_back();
+	}
+	//PointType type;
+	//int last_index = 0;
+	//int now_index = 0;
+	//
+	//bool flag = true;
+	//while (true) {
+
+	//	now_index = getOneAnchorPos(last_index, type, curve_index,flag,unknown,sample);
+
+	//	if (now_index >= image.curve_points[curve_index].size() - 1)
+	//		break;
+
+	//	if (last_index != 0) {
+	//		if (flag)
+	//			sample[sample.size() - 1].end_point = now_index-1;
+	//		else
+	//			unknown[unknown.size() - 1].end_point = now_index-1;
+	//	}
+	//	AnchorPoint anchor(last_index+1, now_index, now_index, type);
+	//	if (anchor.type == OUTER){
+	//		sample.push_back(anchor);
+	//		flag = true;
+	//	}
+	//	else {
+	//		unknown.push_back(anchor);
+	//		flag = false;
+	//	}
+
+	//	last_index = now_index;
+	//}
+
+	///*the last sample patch does't have enough points on the curve,  so we need to abort it in case that when calculating energy Es,
+	//the result will be much more little than other patches and influence chooing the right patch
+	//*/
+	//if(sample.size()>0)
+	//	sample.pop_back();
 }
 
 int Structure_propagation::getOneAnchorPos(int lastanchor_index, PointType &t, int curve_index,bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample){

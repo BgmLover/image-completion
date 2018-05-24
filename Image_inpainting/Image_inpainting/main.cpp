@@ -27,7 +27,8 @@ void test1() {
 	Rect rec3(p5, p6);
 	Rect inter = rec1 & rec2;
 	Rect i = rec1 & rec3;
-	cout << "";
+	cout << rec1.contains(p2);
+	cout << endl;
 }
 int main() {
 	test();

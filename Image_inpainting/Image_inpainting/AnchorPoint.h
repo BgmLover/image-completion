@@ -6,8 +6,8 @@ class AnchorPoint {
 
 public:
 	int begin_point;
-	int end_point;
 	int anchor_point;
+	int end_point;
 	PointType type;
 	std::vector<int> neighbors;
 

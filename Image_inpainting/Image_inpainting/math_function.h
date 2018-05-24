@@ -15,3 +15,4 @@ void addArray(float*a, float*b, float*c,int num);
 void minusArray(float*a, float*b, float *c,int num);
 bool isEqualArray(float *a, float*b, int num);
 void moveArray(float*a, float*b, int num);
+bool contain(Rect &rec, Point2i &p);

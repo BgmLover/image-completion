@@ -20,6 +20,9 @@ private:
 	int getOneAnchorPos(int lastanchor_index,PointType &t,int curve_index,bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample);
 	void getOneCurveAnchors(int curve_index,vector<AnchorPoint>&unknown,vector<AnchorPoint>&sample);
 
+	int getOneAnchorFront(int lastanchor_index, PointType &t, int curve_index, bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample);
+	int getOneAnchorBack(int lastanchor_index, PointType &t, int curve_index, bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample);
+
 	Point2i getLeftTopPoint (int point_index, int curve_index);
 	Point2i getLeftTopPoint(Point2i p);
 	Point2i getAnchorPoint(AnchorPoint ap, int curve_index);
@@ -55,7 +58,7 @@ public:
 	void getMask() { image.getMask(); }
 	void getCurves() { image.getCurves(); }
 	void getAnchors();
-	void drawAnchors();//for debug
+	void drawAnchors();
 	void getNewStructure();
 	void testOneCurve();
 };
