@@ -5,10 +5,10 @@
 
 
 #VS
-.vs/*
-x64/*
-Debug/*
-Image_inpainting.sln
+Image_inpainting/.vs/*
+Image_inpainting/x64/*
+Image_inpainting/Debug/*
+Image_inpainting/Image_inpainting.sln
 
 #VSCode
 .vscode/*
