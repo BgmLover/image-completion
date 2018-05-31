@@ -1,5 +1,6 @@
 #include"Image.h"
 #include<string>
+#include"debug.h"
 
 static int mouse_event;
 static Point2i mouse_pos;

@@ -18,24 +18,13 @@ f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\struct
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(414): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(415): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
 f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(498): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(550): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(563): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(568): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(593): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(707): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(721): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(726): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-  main.cpp
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\mat.hpp(1964): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-  math_function.cpp
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\mat.hpp(1964): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\persistence.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\opencv\opencv3.1.0\opencv_3.1.0\include\opencv2\core\utility.hpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\math_function.cpp(18): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\math_function.cpp(23): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(556): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(569): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(574): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(599): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(713): warning C4267: “return”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(727): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+f:\siggraph\image_comp\image_inpainting\image_inpainting\image_inpainting\structure_propagation.cpp(732): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  Texture_Propagation.cpp
   正在生成代码...
   Image_inpainting.vcxproj -> F:\SIGGRAPH\Image_comp\Image_inpainting\Image_inpainting\x64\Debug\Image_inpainting.exe

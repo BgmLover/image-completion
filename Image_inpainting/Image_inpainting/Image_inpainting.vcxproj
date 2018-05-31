@@ -131,17 +131,22 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math_function.cpp" />
+    <ClCompile Include="Photometric_Correction.cpp" />
     <ClCompile Include="Structure_propagation.cpp" />
+    <ClCompile Include="Texture_Propagation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="C:\Users\Canglang\Pictures\2.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnchorPoint.h" />
+    <ClInclude Include="debug.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="math_function.h" />
     <ClInclude Include="param.h" />
+    <ClInclude Include="Photometric_Correction.h" />
     <ClInclude Include="Structure_propagation.h" />
+    <ClInclude Include="Texture_Propagation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

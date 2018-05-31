@@ -60,5 +60,6 @@ public:
 	void getAnchors();
 	void drawAnchors();
 	void getNewStructure();
+	//just for test
 	void testOneCurve();
 };

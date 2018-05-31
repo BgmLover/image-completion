@@ -1,6 +1,6 @@
 #include"Structure_propagation.h"
 #include"math_function.h"
-
+#include"debug.h"
 //for debug
 void Structure_propagation::testOneCurve() {
 	imwrite("mask.png", image.mask);
@@ -270,7 +270,7 @@ vector<int> Structure_propagation::BP(vector<AnchorPoint>&unknown, vector<Anchor
 		}
 	}
 
-	if (ifshowDP_E1) {
+	if (ifshowBP_E1) {
 		cout << "E1[i][j]:" << endl;
 		for (int i = 0; i < unknown_size; i++) {
 			for (int j = 0; j < sample_size; j++) {
@@ -498,14 +498,20 @@ void Structure_propagation::getNewStructure() {
 	int curve_size = image.curve_points.size();
 	vector<bool>isSingle(curve_size, true);
 	//for debug
-	for (int i = 0; i < curve_size; i++) {
-		cout << "curve_index: " << i << " size:" << unknown_anchors[i].size() << " ," << sample_anchors[i].size() << " ," << image.curve_points[i].size() << endl;
+	if(ifshowMerge){
+		for (int i = 0; i < curve_size; i++) {
+			cout << "curve_index: " << i << " size:" << unknown_anchors[i].size() << " ," << sample_anchors[i].size() << " ," << image.curve_points[i].size() << endl;
+		}
 	}
+	
 	mergeCurves(isSingle);
-	cout << endl << "after merge:" << endl;
-	for (int i = 0; i < curve_size; i++) {
-		cout << "curve_index: " << i << " size:" << unknown_anchors[i].size() << " ," << sample_anchors[i].size() << " ," << image.curve_points[i].size() << endl;
+	if (ifshowMerge) {
+		cout << endl << "after merge:" << endl;
+		for (int i = 0; i < curve_size; i++) {
+			cout << "curve_index: " << i << " size:" << unknown_anchors[i].size() << " ," << sample_anchors[i].size() << " ," << image.curve_points[i].size() << endl;
+		}
 	}
+	
 	for (int i = 0; i < curve_size; i++) {
 		if (isSingle[i]) {
 			if (!unknown_anchors[i].empty())
