@@ -5,6 +5,7 @@
 5*5 neighborhood
 */
 
+
 Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 {
 	sp = p;
@@ -27,6 +28,8 @@ Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 	}
 	init_gaussian_kernel(Gaussian_kernel_size);
 	init_confidence_map();
+	update_confidence_map(0);
+	cal_level_map(0);
 }
 
 
@@ -36,8 +39,9 @@ void Texture_Propagation::update_confidence_map(int area_index)
 	int cols = mask.cols;
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
-			if (area[i][j] != area_index) {
-				continue;
+			if (ifpartition) {
+				if (area[i][j] != area_index) 
+					continue;			
 			}
 			if (mask.at<uchar>(i, j) == 255) {
 				confidence_map[i][j] = 1;
@@ -49,11 +53,25 @@ void Texture_Propagation::update_confidence_map(int area_index)
 					if (row<0 || row>rows - 1) continue;
 					for (int col = j - distance; col < j + distance; col++) {
 						if (col<0 || col>cols - 1) continue;
-						confidence_map[i][j] += Gaussian_kernel[row-i+distance][col-j+distance] * (mask.at<uchar>(row, col)/255);
+						int tmp = mask.at<uchar>(row, col) == 255;
+						confidence_map[i][j] += Gaussian_kernel[row-i+distance][col-j+distance] *tmp;
 					}
 				}
 			}
 		}
+	}
+
+	if (ifshowConfidencemap) {
+		cout << endl;
+		double sum = 0;
+		for (int i = 0; i < mask.rows; i++) {
+			for (int j = 0; j < mask.cols; j++) {
+				cout << confidence_map[i][j] << "  ";
+				sum += confidence_map[i][j];
+			}
+			cout << endl;
+		}
+		cout << "average: " << sum / mask.rows / mask.cols << endl;
 	}
 }
 
@@ -98,8 +116,62 @@ float Texture_Propagation::gaussion_x_y(float x, float y, float x0, float y0, fl
 
 
 
-void Texture_Propagation::cal_level_map(int area)
+void Texture_Propagation::cal_level_map(int area_index)
 {
+	int rows = mask.rows;
+	int cols = mask.cols;
+	double sum = 0;
+	vector<float> tmp;
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (ifpartition) {
+				if (area[i][j] != area_index)
+					continue;
+			}
+			sum += confidence_map[i][j];
+			tmp.push_back(confidence_map[i][j]);
+		}
+	}
+	double average = sum / tmp.size();
+	double sigma = 0;
+	for (int i = 0; i < tmp.size(); i++) {
+		sigma += (tmp[i] - average)*(tmp[i] - average);
+	}
+	sigma /= tmp.size();
+	sigma = sqrt(sigma);
+
+	
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_real_distribution<> rand(0, sigma);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (ifpartition) {
+				if (area[i][j] != area_index)
+					continue;
+			}
+			if (confidence_map[i][j] > average) {
+				level_map[i][j] = 0;
+			}
+			else {
+				level_map[i][j] = confidence_map[i][j] + rand(gen);
+			}
+		}
+	}
+
+	if (ifshowlevelmap) {
+		cout << endl;
+		cout << "sigma=" << sigma << endl;
+		double sum = 0;
+		for (int i = 0; i < mask.rows; i++) {
+			for (int j = 0; j < mask.cols; j++) {
+				cout << level_map[i][j] << "  ";
+				sum += level_map[i][j];
+			}
+			cout << endl;
+		}
+		cout << "average: " << sum / mask.rows / mask.cols << endl;
+	}
 	
 }
 

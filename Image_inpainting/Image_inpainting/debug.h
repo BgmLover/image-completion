@@ -21,3 +21,6 @@
 
 //in Texture_Propagation
 #define ifsavemask_t  true
+#define ifpartition   false
+#define ifshowConfidencemap true
+#define ifshowlevelmap true

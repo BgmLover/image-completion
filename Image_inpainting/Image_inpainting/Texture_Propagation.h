@@ -5,6 +5,7 @@
 
 #include"Structure_propagation.h"
 #include"param.h"
+#include<random>
 
 using namespace std;
 using namespace cv;
@@ -30,7 +31,7 @@ private:
 	void update_confidence_map(int area_index);
 	void init_gaussian_kernel(int Gaussian_kernel_size);
 	float gaussion_x_y(float x, float y, float x0, float y0, float sigma = 1.0);
-	void cal_level_map(int area);
+	void cal_level_map(int area_index);
 
 	/*
 	the following functions are mainly about synthesizing textures from known regions

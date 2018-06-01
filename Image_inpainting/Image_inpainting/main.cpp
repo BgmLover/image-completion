@@ -9,7 +9,8 @@ using namespace std;
 void test(){
 	//Mat a = imread("test1.jpg");
 	string path = "test_data/";
-	Mat a = imread(path+"test1.jpg");
+	//Mat a = imread(path+"test1.jpg");
+	Mat a = imread(path + "test3.bmp");
 	Structure_propagation s(a);
 	s.getMask();
 	s.getCurves();
@@ -42,6 +43,18 @@ void test2() {
 	double sigma = 1;
 	double pi = 3.14;
 	cout << exp(-x * x / (2 * sigma*sigma)) / (sigma*sqrt(2 * pi)) << endl;
+	getchar();
+	getchar();
+}
+void test4() {
+	double sigma = 0.4;
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_real_distribution<> rand(0, sigma);
+	for (int i = 0; i < 10; i++) {
+
+		cout << rand(gen) << endl;
+	}
 	getchar();
 	getchar();
 }
