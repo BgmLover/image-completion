@@ -525,6 +525,9 @@ void Structure_propagation::getNewStructure() {
 	imshow("Get one curve", image.image_inpainted);
 	if(ifshowsrcImg)
 		imshow("srcImg", image.srcImage);
+	if (ifsaveinpainted) {
+		imwrite(path + "inpainted.png", this->image.image_inpainted);
+	}
 	waitKey();
 }
 

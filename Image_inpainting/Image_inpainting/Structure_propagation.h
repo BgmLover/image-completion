@@ -9,10 +9,7 @@ using namespace std;
 class Structure_propagation {
 
 private:
-	
-	vector<vector<AnchorPoint>> unknown_anchors;
-	vector<vector<AnchorPoint>> sample_anchors;
-
+	string path = "test_data/result/";
 	/*
 	the way to find the anchor point is that,from the first point on the curve,each turn we get the half number
 	of points of the patch.
@@ -23,8 +20,7 @@ private:
 	int getOneAnchorFront(int lastanchor_index, PointType &t, int curve_index, bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample);
 	int getOneAnchorBack(int lastanchor_index, PointType &t, int curve_index, bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample);
 
-	Point2i getLeftTopPoint (int point_index, int curve_index);
-	Point2i getLeftTopPoint(Point2i p);
+
 	Point2i getAnchorPoint(AnchorPoint ap, int curve_index);
 	Rect getRect(AnchorPoint ap, int curve_index);
 	Rect getRect(Point2i p);
@@ -53,6 +49,9 @@ private:
 	
 public:
 	Image image;
+	vector<vector<AnchorPoint>> unknown_anchors;
+	vector<vector<AnchorPoint>> sample_anchors;
+
 	Structure_propagation() = default;
 	Structure_propagation(Mat src) { image = *(new Image(src));}
 	void getMask() { image.getMask(); }
@@ -62,4 +61,8 @@ public:
 	void getNewStructure();
 	//just for test
 	void testOneCurve();
+
+	//tool function
+	Point2i getLeftTopPoint(int point_index, int curve_index);
+	Point2i getLeftTopPoint(Point2i p);
 };

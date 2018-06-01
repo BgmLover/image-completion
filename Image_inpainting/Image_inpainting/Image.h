@@ -15,10 +15,10 @@ public:
 	vector<vector<Point2i>>curve_points;	//the user marks the curves to show the structure
 
 	Image() = default;
-	Image(Mat src) :srcImage(src), image_masked(src.clone()),image_inpainted(src.clone()) { this->mask = Mat::ones(src.size() , CV_8U); this->mask.setTo(255); }
+	Image(Mat src);
 	void getMask();
 	void getCurves();
 
 private:
-
+	string path = "test_data/result/";
 };

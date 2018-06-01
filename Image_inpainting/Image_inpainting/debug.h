@@ -2,6 +2,9 @@
 
 //control the debug
 
+//in Image
+#define ifsavemask    true
+
 //In Structure_propagation
 #define ifshowDPlabel true
 #define ifshowDP_M	  true
@@ -13,3 +16,8 @@
 #define ifshowMerge   true
 #define ifshowCurves  true
 #define ifshowsrcImg  false
+
+#define ifsaveinpainted true
+
+//in Texture_Propagation
+#define ifsavemask_t  true

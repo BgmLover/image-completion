@@ -11,6 +11,14 @@ void on_MouseHandle(int event, int x, int y, int flags, void *param) {
 	mouse_pos = Point2i(x, y);
 	mouse_flags = flags;
 }
+Image::Image(Mat src)
+{
+	srcImage = src.clone();
+	image_masked = src.clone();
+	image_inpainted = src.clone();
+	mask = Mat::zeros(src.size(), CV_8U); 
+	mask.setTo(255); 
+}
 void Image::getMask() {
 	Mat display = this->srcImage.clone();
 	const  string name = "Get the mask";
@@ -41,6 +49,9 @@ void Image::getMask() {
 		}
 		//circle(display, mouse_pos, size, Scalar(0, 0, 255));
 		imshow(name, display);
+	}
+	if (ifsavemask) {
+		imwrite(path + "mask.png", mask);
 	}
 	this->image_inpainted = image_masked.clone();
 	destroyWindow(name);

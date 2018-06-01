@@ -1,5 +1,6 @@
 #pragma once
-
+#include<string>
+using namespace std;
 
 //in Structure_Propagation
 #define KS 50
@@ -11,6 +12,10 @@
 //in Texture_Propagation
 
 #define SIZEOFNEIGHBORHOOD 5
+#define KERNEL_SIZE 5
+#define PI 3.14
+
+
 typedef enum {
 	INNER,BORDER,OUTER
 }PointType;
