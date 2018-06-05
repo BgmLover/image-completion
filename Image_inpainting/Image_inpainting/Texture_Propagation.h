@@ -13,11 +13,12 @@ using namespace cv;
 class Texture_Propagation {
 private:
 	Structure_propagation * sp;
+	int area_num = 0;
 	int **area;				//to show which area does the pixel belong to after the partition of the image after the sturcture propagation
 	float **confidence_map;	//to show the how much information does the position contain
 	float **level_map;		//to determine the set of candidate positions
 	float **Gaussian_kernel;//to calculate gaussian falloff in calculating confidence map
-
+	bool ifpartition = false;
 	Mat mask;
 	Mat srcImg;
 	int sizeof_neighborhood = SIZEOFNEIGHBORHOOD;
@@ -36,7 +37,11 @@ private:
 	/*
 	the following functions are mainly about synthesizing textures from known regions
 	*/
+	void extend_curve();
+	//to test if a point is in the picture
+	bool inBoundary(Point2i p);
 	int get_best_candidate();
+	void synthesize_area_texture(int area);
 
 public:
 	Texture_Propagation(Structure_propagation* p);
@@ -44,7 +49,8 @@ public:
 	divide the whole image into areas to synthesize the textures independently
 	*/
 	void partition();
-
+	void show_partition();
+	void show_partition_image();
 	void synthesize_texture();
 	
 };

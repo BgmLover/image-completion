@@ -103,6 +103,7 @@ void Image::getCurves() {
 		else last_pos = Point2i(-1, -1);
 		imshow(namewindow, display);
 	}
+	curve_points_copy.assign(curve_points.begin(), curve_points.end());
 	if (!ifshowCurves) {
 		destroyWindow(namewindow);
 	}

@@ -9,8 +9,8 @@ using namespace std;
 void test(){
 	//Mat a = imread("test1.jpg");
 	string path = "test_data/";
-	//Mat a = imread(path+"test1.jpg");
-	Mat a = imread(path + "test3.bmp");
+	Mat a = imread(path+"test1.jpg");
+	//Mat a = imread(path + "test3.bmp");
 	Structure_propagation s(a);
 	s.getMask();
 	s.getCurves();
@@ -19,6 +19,8 @@ void test(){
 	//s.testOneCurve();
 	//s.getNewStructure();
 	Texture_Propagation tp(&s);
+	tp.partition();
+	tp.show_partition_image();
 	waitKey();
 	destroyAllWindows();
 }
@@ -57,6 +59,23 @@ void test4() {
 	}
 	getchar();
 	getchar();
+}
+void test5() {
+	vector<vector<int>> a, b;
+	vector<int>tmp;
+	for (int i = 0; i < 5; i++) {
+		tmp.push_back(i);
+	}
+	a.push_back(tmp);
+	tmp.clear();
+	for (int j = 6; j < 10; j++) {
+		tmp.push_back(j);
+	}
+	a.push_back(tmp);
+	b.assign(a.begin(), a.end());
+	a.clear();
+	cout << "" << endl;
+
 }
 int main() {
 	test();
