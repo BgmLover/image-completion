@@ -35,7 +35,7 @@ Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 	mask_right = 0;
 	for (int row_index = 0; row_index < mask.rows; row_index++) {
 		for (int col_index = 0; col_index < mask.cols; col_index++) {
-			if (inMask(Point2i(row_index,col_index))) {
+			if (inMask(Point2i(row_index, col_index))) {
 				mask_bottom = row_index > mask_bottom ? row_index : mask_bottom;
 				mask_top = row_index < mask_top ? row_index : mask_top;
 				mask_left = col_index < mask_left ? col_index : mask_left;
@@ -75,7 +75,7 @@ void Texture_Propagation::update_confidence_map(int area_index, vector<Point2i>&
 	}
 
 
-	
+
 	if (ifshowConfidencemap) {
 		cout << endl;
 		double sum = 0;
@@ -156,12 +156,12 @@ void Texture_Propagation::cal_level_map(int area_index, vector<Point2i>&points)
 	sigma /= tmp.size();
 	sigma = sqrt(sigma);
 
-	
+
 	random_device rd;
 	mt19937 gen(rd());
 	uniform_real_distribution<> rand(0, sigma);
 	//we select 20% of the max value points as the candidates
-	
+
 	for (int point_index = 0; point_index < num_points; point_index++) {
 		int row_index = points[point_index].y;
 		int col_index = points[point_index].x;
@@ -202,7 +202,7 @@ void Texture_Propagation::extend_curve()
 				area[first_point.y][first_point.x] = -1;
 			}
 			Point2i last_point = curves[i][curves[i].size() - 1];
-			Point2i se_last_point= curves[i][curves[i].size() - 2];
+			Point2i se_last_point = curves[i][curves[i].size() - 2];
 			Point2i tmp2 = se_last_point - last_point;
 			while (inBoundary(last_point - tmp2)) {
 				last_point = last_point - tmp2;
@@ -230,10 +230,8 @@ bool Texture_Propagation::inMask(Point2i p)
 	return false;
 }
 
-
-
 void Texture_Propagation::partition()
-{	
+{
 	//init the area
 	area = new int*[mask.rows];
 	for (int i = 0; i < mask.rows; i++) {
@@ -242,7 +240,7 @@ void Texture_Propagation::partition()
 	}
 	//partition the area by the user
 	if (ifUserPartition) {
-		
+
 	}
 	//partition the area by the user specified curves
 	else {
@@ -306,7 +304,7 @@ void Texture_Propagation::partition()
 			}
 		}
 		//show_partition();
-		int *final_area = new int[area_num+1];
+		int *final_area = new int[area_num + 1];
 		final_area[0] = 0;
 		for (int area_index = 1; area_index <= area_num; area_index++) {
 			//init the area_array to be the corresponding area index
@@ -317,7 +315,7 @@ void Texture_Propagation::partition()
 					set<int>::iterator it;
 					//find the smallest value in the set
 					for (it = diff_areas[set_index].begin(); it != diff_areas[set_index].end(); it++) {
-						if ((int)final_area[area_index] >(int) *it) {
+						if ((int)final_area[area_index] > (int) *it) {
 							final_area[area_index] = *it;
 						}
 					}
@@ -332,7 +330,7 @@ void Texture_Propagation::partition()
 					continue;
 				}
 				else {
-					int area_index=area[row_index][col_index];
+					int area_index = area[row_index][col_index];
 					area[row_index][col_index] = final_area[area_index];
 				}
 			}
@@ -341,8 +339,8 @@ void Texture_Propagation::partition()
 		int count = 0;
 		for (int i = 1; i <= area_num; i++) {
 			if (final_area[i] > count) {
-				int last_index = final_area[i];				
-				final_area[i]=++count;
+				int last_index = final_area[i];
+				final_area[i] = ++count;
 				int j = i + 1;
 				while (j <= area_num) {
 					if (final_area[j] == last_index) {
@@ -369,7 +367,7 @@ void Texture_Propagation::partition()
 	}
 	ifpartition = true;
 	//statistic the number of each area
-	area_size = vector<int>(area_num + 1,0);
+	area_size = vector<int>(area_num + 1, 0);
 	for (int row_index = 0; row_index < mask.rows; row_index++) {
 		for (int col_index = 0; col_index < mask.cols; col_index++) {
 			int area_index = area[row_index][col_index];
@@ -378,7 +376,6 @@ void Texture_Propagation::partition()
 	}
 	area_unknown_size.assign(area_size.begin(), area_size.end());
 }
-
 
 void Texture_Propagation::show_partition()
 {
@@ -406,14 +403,12 @@ void Texture_Propagation::show_partition_image()
 	for (int i = 0; i < partition.rows; i++) {
 		for (int j = 0; j < partition.cols; j++) {
 			int index = area[i][j];
-			partition.at<Vec3b>(i, j) = Vec3b(B[index],G[index],R[index]);
+			partition.at<Vec3b>(i, j) = Vec3b(B[index], G[index], R[index]);
 		}
 	}
 	imwrite(path + "partition.png", partition);
 	delete[] R, G, B;
 }
-
-
 
 void Texture_Propagation::init_original_pixel_map()
 {
@@ -448,20 +443,83 @@ vector<Point2i> Texture_Propagation::get_unknown_points(int area_index)
 	return points;
 }
 
+void Texture_Propagation::fill_one_pixel(Point2i unknown_point, int area_index)
+{
+	vector<Point2i>neighbors;
+	set<Point2i>candidates;
+	get_candidates(unknown_point, neighbors,candidates, area_index);	
+	if (neighbors.size() == 0) {
+		//TODO
+	}
+	else {
+		Point2i best_candidate = get_best_candidate(candidates);
+	}
+
+}
+
+void Texture_Propagation::get_candidates(Point2i unknown_point, vector<Point2i> &neighbors,set<Point2i>&candidates,int area_index)
+{
+	//L-shaped neighbors
+	int point_row = unknown_point.y;
+	int point_col = unknown_point.x;
+	int distance = sizeof_neighborhood / 2;
+	for (int row_index = point_row-sizeof_neighborhood/2; row_index < point_row; row_index++) {
+		for (int col_index = point_col - distance; col_index < point_col + distance; col_index++) {
+			if (row_index == point_row) {
+				if (col_index == point_col) {
+					break;
+				}
+			}
+			Point2i neighbor_point(row_index, col_index);
+			if (inBoundary(neighbor_point)) {
+				if (area[row_index][col_index] == area_index) {
+					neighbors.push_back(neighbor_point);
+					Point2i original_point = original_pixel_map[row_index][col_index];
+					Point2i candidate = original_point + unknown_point - neighbor_point;
+					//judge if the candidate is in the right area and in boundary
+					if (inBoundary(candidate)) {
+						if (area[candidate.y][candidate.x] == area_index) {
+							candidates.insert(candidate);
+						}
+					}
+				}
+			}
+
+		}
+	}
+}
+
+Point2i Texture_Propagation::get_best_candidate(set<Point2i>& candidates)
+{
+	float min_L2_difference = FLT_MAX;
+	set<Point2i>::iterator it;
+	for (it = candidates.begin(); it != candidates.end(); it++) {
+
+	}
+}
+
 void Texture_Propagation::synthesize_area_texture(int area_index)
-{	
+{
 	while (area_unknown_size[area_index] > 0) {
 		//select one pixel to find its original pixel
 		vector<Point2i>unknown_points;
-		update_confidence_map(area_index,unknown_points);
+		update_confidence_map(area_index, unknown_points);
 		cal_level_map(area_index, unknown_points);
 		int candidate_size = area_size[area_index] * level_set_radio;
 		candidate_size = candidate_size > unknown_points.size() ? unknown_points.size() : candidate_size;
 		//the 0~candidate-1 th point in the unknown_points will be tht candidate to be fill
 		sort(unknown_points.begin(), unknown_points.end(), compare);
 		
+		//search the original pixel of the unknown points
+		for (int point_index = 0; point_index < candidate_size; point_index++) {
+			Point2i unknown_point = unknown_points[point_index];
+			fill_one_pixel(unknown_point, area_index);
+		}
+		area_unknown_size[area_index] -= candidate_size;
+		if (area_unknown_size[area_index] < 0) {
+			cout << "Error in synthesize_area_texture:no enough points in the area " + area_index << endl;
+		}
 	}
-
 
 }
 
@@ -472,8 +530,10 @@ void Texture_Propagation::synthesize_texture()
 	partition();				//partition the whole picture
 	init_original_pixel_map();	//init the original pixel map
 
-	for (int i = 1; i <= area_num; i++) {
-		synthesize_area_texture(i);
+	for (int area_index = 1; area_index <= area_num; area_index++) {
+		synthesize_area_texture(area_index);
 	}
-
+	
 }
+
+

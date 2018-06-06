@@ -24,7 +24,7 @@ private:
 
 	bool ifpartition = false;
 	Mat mask;
-	int mask_left, mask_top, mask_right, mask_bottom;
+	int mask_left, mask_top, mask_right, mask_bottom;	//describe the mask 
 	Mat srcImg;
 	Mat resImg;
 	int sizeof_neighborhood = SIZEOFNEIGHBORHOOD;
@@ -51,10 +51,14 @@ private:
 	bool inMask(Point2i p);
 	//get the points unknown in the area
 	vector<Point2i>get_unknown_points(int area_index);
-	int get_best_candidate();
+	//to find the original pixel of an unknown point
+	void fill_one_pixel(Point2i unknown_point, int area_index);
+	//get L-shaped neighbors of one point 
+	void get_candidates(Point2i unknown_point,vector<Point2i>&neighbors,set<Point2i>&candidates,int area_index);
+	Point2i get_best_candidate(set<Point2i>&candidates);
 	void synthesize_area_texture(int area_index);
 	void init_original_pixel_map();
-
+	
 public:
 	Texture_Propagation(Structure_propagation* p);
 	/*
