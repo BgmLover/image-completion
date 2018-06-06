@@ -12,8 +12,10 @@
 Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 {
 	sp = p;
-	srcImg = p->image.srcImage.clone();
+	srcImg = p->image.image_inpainted.clone();
 	mask = p->image.mask.clone();
+	resImg = srcImg.clone();
+
 	int curve_size = p->unknown_anchors.size();
 	for (int curve_index = 0; curve_index < curve_size; curve_index++) {
 		for (int anchor_index = 0; anchor_index < p->unknown_anchors[curve_index].size(); anchor_index++) {
@@ -26,46 +28,54 @@ Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 			//waitKey();
 		}
 	}
+	//calculate the boundary of the mask area
+	mask_bottom = 0;
+	mask_top = mask.rows;
+	mask_left = mask.cols;
+	mask_right = 0;
+	for (int row_index = 0; row_index < mask.rows; row_index++) {
+		for (int col_index = 0; col_index < mask.cols; col_index++) {
+			if (inMask(Point2i(row_index,col_index))) {
+				mask_bottom = row_index > mask_bottom ? row_index : mask_bottom;
+				mask_top = row_index < mask_top ? row_index : mask_top;
+				mask_left = col_index < mask_left ? col_index : mask_left;
+				mask_right = col_index > mask_right ? col_index : mask_right;
+			}
+		}
+	}
 	if (ifsavemask_t) {
 		imwrite(path + "t_mask.png", mask);
 	}
-	init_gaussian_kernel(Gaussian_kernel_size);
-	init_confidence_map();
-	update_confidence_map(0);
-	cal_level_map(0);
 }
 
 
-
-
-void Texture_Propagation::update_confidence_map(int area_index)
+void Texture_Propagation::update_confidence_map(int area_index, vector<Point2i>&points)
 {
 	int rows = mask.rows;
 	int cols = mask.cols;
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (ifpartition) {
-				if (area[i][j] != area_index) 
-					continue;			
-			}
-			if (mask.at<uchar>(i, j) == 255) {
-				confidence_map[i][j] = 1;
-			}
-			else {
-				int distance = Gaussian_kernel_size / 2;
-				confidence_map[i][j] = 0;	//initialize it to be 0
-				for (int row = i - distance; row < i + distance; row++) {
-					if (row<0 || row>rows - 1) continue;
-					for (int col = j - distance; col < j + distance; col++) {
-						if (col<0 || col>cols - 1) continue;
-						int tmp = mask.at<uchar>(row, col) == 255;
-						confidence_map[i][j] += Gaussian_kernel[row-i+distance][col-j+distance] *tmp;
-					}
+	int num_points = points.size();
+	for (int point_index = 0; point_index < num_points; point_index++) {
+		int row_index = points[point_index].y;
+		int col_index = points[point_index].x;
+		if (inMask(points[point_index])) {
+			confidence_map[row_index][col_index] = 1;
+		}
+		else {
+			int distance = Gaussian_kernel_size / 2;
+			confidence_map[row_index][col_index] = 0;	//initialize it to be 0
+			for (int row = row_index - distance; row < row_index + distance; row++) {
+				if (row<0 || row>rows - 1) continue;
+				for (int col = col_index - distance; col < col_index + distance; col++) {
+					if (col<0 || col>cols - 1) continue;
+					int tmp = mask.at<uchar>(row, col) == 255;
+					confidence_map[row_index][col_index] += Gaussian_kernel[row - row_index + distance][col - col_index + distance] * tmp;
 				}
 			}
 		}
 	}
 
+
+	
 	if (ifshowConfidencemap) {
 		cout << endl;
 		double sum = 0;
@@ -118,25 +128,26 @@ float Texture_Propagation::gaussion_x_y(float x, float y, float x0, float y0, fl
 	return (1 / (2 * PI*sigma*sigma))*exp(-((x - x0)*(x - x0) + (y - y0)*(y - y0)) / (2 * sigma*sigma));
 }
 
+bool Texture_Propagation::compare(Point2i i, Point2i j)
+{
+	return level_map[i.y][i.x] > level_map[j.y][j.x];
+}
 
-
-
-void Texture_Propagation::cal_level_map(int area_index)
+void Texture_Propagation::cal_level_map(int area_index, vector<Point2i>&points)
 {
 	int rows = mask.rows;
 	int cols = mask.cols;
+	int num_points = points.size();
+	//calculate the sigma 
 	double sum = 0;
 	vector<float> tmp;
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (ifpartition) {
-				if (area[i][j] != area_index)
-					continue;
-			}
-			sum += confidence_map[i][j];
-			tmp.push_back(confidence_map[i][j]);
-		}
+	for (int point_index = 0; point_index < num_points; point_index++) {
+		int row_index = points[point_index].y;
+		int col_index = points[point_index].x;
+		sum += confidence_map[row_index][col_index];
+		tmp.push_back(confidence_map[row_index][col_index]);
 	}
+
 	double average = sum / tmp.size();
 	double sigma = 0;
 	for (int i = 0; i < tmp.size(); i++) {
@@ -149,18 +160,16 @@ void Texture_Propagation::cal_level_map(int area_index)
 	random_device rd;
 	mt19937 gen(rd());
 	uniform_real_distribution<> rand(0, sigma);
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (ifpartition) {
-				if (area[i][j] != area_index)
-					continue;
-			}
-			if (confidence_map[i][j] > average) {
-				level_map[i][j] = 0;
-			}
-			else {
-				level_map[i][j] = confidence_map[i][j] + rand(gen);
-			}
+	//we select 20% of the max value points as the candidates
+	
+	for (int point_index = 0; point_index < num_points; point_index++) {
+		int row_index = points[point_index].y;
+		int col_index = points[point_index].x;
+		if (confidence_map[row_index][col_index] > average) {
+			level_map[row_index][col_index] = 0;
+		}
+		else {
+			level_map[row_index][col_index] = confidence_map[row_index][col_index] + rand(gen);
 		}
 	}
 
@@ -175,9 +184,8 @@ void Texture_Propagation::cal_level_map(int area_index)
 			}
 			cout << endl;
 		}
-		cout << "average: " << sum / mask.rows / mask.cols << endl;
+		cout << "average level_map value in the whole picture: " << sum / mask.rows / mask.cols << endl;
 	}
-	
 }
 
 void Texture_Propagation::extend_curve()
@@ -207,6 +215,16 @@ void Texture_Propagation::extend_curve()
 bool Texture_Propagation::inBoundary(Point2i p)
 {
 	if (p.x >= 0 && p.x <= mask.cols - 1 && p.y >= 0 && p.y <= mask.rows - 1) {
+		return true;
+	}
+	return false;
+}
+
+bool Texture_Propagation::inMask(Point2i p)
+{
+	int col = p.x;
+	int row = p.y;
+	if (mask.at<uchar>(row, col) == 0) {
 		return true;
 	}
 	return false;
@@ -349,6 +367,16 @@ void Texture_Propagation::partition()
 		//show_partition();
 		//cout << endl;
 	}
+	ifpartition = true;
+	//statistic the number of each area
+	area_size = vector<int>(area_num + 1,0);
+	for (int row_index = 0; row_index < mask.rows; row_index++) {
+		for (int col_index = 0; col_index < mask.cols; col_index++) {
+			int area_index = area[row_index][col_index];
+			area_size[area_index]++;
+		}
+	}
+	area_unknown_size.assign(area_size.begin(), area_size.end());
 }
 
 
@@ -387,3 +415,65 @@ void Texture_Propagation::show_partition_image()
 
 
 
+void Texture_Propagation::init_original_pixel_map()
+{
+	original_pixel_map = new Point2i*[mask.rows];
+	for (int i = 0; i < mask.rows; i++) {
+		original_pixel_map[i] = new Point2i[mask.cols];
+	}
+	for (int row = 0; row < mask.rows; row++) {
+		for (int col = 0; col < mask.cols; col++) {
+			if (inMask(Point2i(row, col))) {
+				original_pixel_map[row][col] = Point2i(-1, -1);
+			}
+			else {
+				original_pixel_map[row][col] = Point2i(row, col);
+			}
+		}
+	}
+}
+
+vector<Point2i> Texture_Propagation::get_unknown_points(int area_index)
+{
+	vector<Point2i>points;
+	for (int row_index = mask_top; row_index <= mask_bottom; row_index++) {
+		for (int col_index = mask_left; col_index <= mask_right; col_index++) {
+			if (area[row_index][col_index] == area_index) {
+				if (inMask(Point2i(row_index, col_index))) {
+					points.push_back(Point2i(row_index, col_index));
+				}
+			}
+		}
+	}
+	return points;
+}
+
+void Texture_Propagation::synthesize_area_texture(int area_index)
+{	
+	while (area_unknown_size[area_index] > 0) {
+		//select one pixel to find its original pixel
+		vector<Point2i>unknown_points;
+		update_confidence_map(area_index,unknown_points);
+		cal_level_map(area_index, unknown_points);
+		int candidate_size = area_size[area_index] * level_set_radio;
+		candidate_size = candidate_size > unknown_points.size() ? unknown_points.size() : candidate_size;
+		//the 0~candidate-1 th point in the unknown_points will be tht candidate to be fill
+		sort(unknown_points.begin(), unknown_points.end(), compare);
+		
+	}
+
+
+}
+
+void Texture_Propagation::synthesize_texture()
+{
+	init_gaussian_kernel(Gaussian_kernel_size);
+	init_confidence_map();
+	partition();				//partition the whole picture
+	init_original_pixel_map();	//init the original pixel map
+
+	for (int i = 1; i <= area_num; i++) {
+		synthesize_area_texture(i);
+	}
+
+}
