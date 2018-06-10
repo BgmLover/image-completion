@@ -185,7 +185,7 @@ void Texture_Propagation::cal_level_map(int area_index)
 
 	random_device rd;
 	mt19937 gen(rd());
-	uniform_real_distribution<> rand(0, sigma);
+	uniform_real_distribution<> rand(0, sigma/4);//这里偏差大了，改小一些
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			if (ifpartition) {
@@ -196,7 +196,8 @@ void Texture_Propagation::cal_level_map(int area_index)
 				level_map[i][j] = 0;
 			}
 			else {
-				level_map[i][j] = confidence_map[i][j] + rand(gen);
+				float biais = rand(gen);
+				level_map[i][j] = confidence_map[i][j] + biais;
 			}
 		}
 	}
