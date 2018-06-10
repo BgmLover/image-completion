@@ -553,9 +553,30 @@ vector<Point2i> Texture_Propagation::get_unknown_points(int area_index)
 	vector<Point2i>points;
 	for (int row_index = mask_top; row_index <= mask_bottom; row_index++) {
 		for (int col_index = mask_left; col_index <= mask_right; col_index++) {
-			if (area[row_index][col_index] == area_index) {
-				if (inMask(Point2i(col_index, row_index))) {
+			if (area[row_index][col_index] != -1 && area[row_index][col_index] != area_index) {
+				continue;
+			}
+			if (inMask(Point2i(col_index, row_index))) {
+				if (area[row_index][col_index] == area_index) {
 					points.push_back(Point2i(col_index, row_index));
+				}
+				else if (area[row_index][col_index] == -1) {
+					if (area[row_index + 1][col_index] != -1) {
+						area[row_index][col_index] = area[row_index + 1][col_index];
+						points.push_back(Point2i(col_index, row_index));
+					}
+					else if (area[row_index - 1][col_index] != -1) {
+						area[row_index][col_index] = area[row_index - 1][col_index];
+						points.push_back(Point2i(col_index, row_index));
+					}
+					else if (area[row_index][col_index + 1] != -1) {
+						area[row_index][col_index] = area[row_index][col_index + 1];
+						points.push_back(Point2i(col_index, row_index));
+					}
+					else if (area[row_index][col_index - 1] != -1) {
+						area[row_index][col_index] = area[row_index][col_index - 1];
+						points.push_back(Point2i(col_index, row_index));
+					}
 				}
 			}
 		}
@@ -580,7 +601,7 @@ bool Texture_Propagation::fill_one_pixel(Point2i unknown_point, int area_index)
 		cout << "find the unknown_point" << unknown_point << "for" << int_to_string(i) << "times" << endl;
 		if (i > 4)
 			return false;
-	} while (best_candidate == Point2i(-1, -1) || candidates.size() < sizeof_neighborhood);
+	} while (best_candidate == Point2i(-1, -1) || candidates.size() ==0);
 
 	if (resImg.at<Vec3b>(best_candidate.y, best_candidate.x) == Vec3b(0, 0, 255)) {
 		cout << unknown_point << "fuck it" << best_candidate << endl;
@@ -598,7 +619,7 @@ bool Texture_Propagation::fill_one_pixel(Point2i unknown_point, int area_index)
 		if(i<3)
 			region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(255, 0, 0);
 		else
-			region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(0, 255, 255);
+			region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(255, 255, 67);
 	}
 	else{
 		region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(0, 255, 0);
