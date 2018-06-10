@@ -1,13 +1,10 @@
 ﻿#include"Texture_Propagation.h"
 #include"debug.h"
 #include"math_function.h"
-#include<set>
 #include<limits>
-/*
-纹理生成部分，记得在候选人部分去除重复的候选人
-5*5 neighborhood
-*/
+#include<ctime>
 
+float **level_map;		//to determine the set of candidate positions
 
 Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 {
@@ -15,7 +12,8 @@ Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 	srcImg = p->image.image_inpainted.clone();
 	mask = p->image.mask.clone();
 	resImg = srcImg.clone();
-
+	region = resImg.clone();
+	to_show = resImg.clone();
 	int curve_size = p->unknown_anchors.size();
 	for (int curve_index = 0; curve_index < curve_size; curve_index++) {
 		for (int anchor_index = 0; anchor_index < p->unknown_anchors[curve_index].size(); anchor_index++) {
@@ -24,8 +22,6 @@ Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 			Point2i right_down = left_top + Point2i(PatchSizeCol, PatchSizeRow);
 			Mat tmp = mask(Rect(left_top, right_down));
 			tmp.setTo(255);
-			//imshow("mask_t", mask);
-			//waitKey();
 		}
 	}
 	//calculate the boundary of the mask area
@@ -35,19 +31,19 @@ Texture_Propagation::Texture_Propagation(Structure_propagation * p)
 	mask_right = 0;
 	for (int row_index = 0; row_index < mask.rows; row_index++) {
 		for (int col_index = 0; col_index < mask.cols; col_index++) {
-			if (inMask(Point2i(row_index, col_index))) {
+			if (inMask(Point2i(col_index, row_index))) {
 				mask_bottom = row_index > mask_bottom ? row_index : mask_bottom;
 				mask_top = row_index < mask_top ? row_index : mask_top;
 				mask_left = col_index < mask_left ? col_index : mask_left;
 				mask_right = col_index > mask_right ? col_index : mask_right;
 			}
+
 		}
 	}
 	if (ifsavemask_t) {
 		imwrite(path + "t_mask.png", mask);
 	}
 }
-
 
 void Texture_Propagation::update_confidence_map(int area_index, vector<Point2i>&points)
 {
@@ -57,7 +53,7 @@ void Texture_Propagation::update_confidence_map(int area_index, vector<Point2i>&
 	for (int point_index = 0; point_index < num_points; point_index++) {
 		int row_index = points[point_index].y;
 		int col_index = points[point_index].x;
-		if (inMask(points[point_index])) {
+		if (!inMask(points[point_index])) {
 			confidence_map[row_index][col_index] = 1;
 		}
 		else {
@@ -73,9 +69,6 @@ void Texture_Propagation::update_confidence_map(int area_index, vector<Point2i>&
 			}
 		}
 	}
-
-
-
 	if (ifshowConfidencemap) {
 		cout << endl;
 		double sum = 0;
@@ -100,6 +93,38 @@ void Texture_Propagation::init_confidence_map()
 		confidence_map[i] = new float[cols];
 		level_map[i] = new float[cols];
 	}
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (mask.at<uchar>(i, j) == 255) {
+				confidence_map[i][j] = 1;
+			}
+			else {
+				int distance = Gaussian_kernel_size / 2;
+				confidence_map[i][j] = 0;	//initialize it to be 0
+				for (int row = i - distance; row < i + distance; row++) {
+					if (row<0 || row>rows - 1) continue;
+					for (int col = j - distance; col < j + distance; col++) {
+						if (col<0 || col>cols - 1) continue;
+						int tmp = mask.at<uchar>(row, col) == 255;
+						confidence_map[i][j] += Gaussian_kernel[row - i + distance][col - j + distance] * tmp;
+					}
+				}
+			}
+		}
+	}
+	if (ifshowConfidencemap) {
+		cout <<"confidence_map:" <<endl;
+		double sum = 0;
+		for (int i = 0; i < mask.rows; i++) {
+			for (int j = 0; j < mask.cols; j++) {
+				cout << confidence_map[i][j] << "  ";
+				sum += confidence_map[i][j];
+			}
+			cout << endl;
+		}
+		cout << "average: " << sum / mask.rows / mask.cols << endl;
+	}
+	cal_level_map(0);
 }
 
 void Texture_Propagation::init_gaussian_kernel(int size)
@@ -128,26 +153,27 @@ float Texture_Propagation::gaussion_x_y(float x, float y, float x0, float y0, fl
 	return (1 / (2 * PI*sigma*sigma))*exp(-((x - x0)*(x - x0) + (y - y0)*(y - y0)) / (2 * sigma*sigma));
 }
 
-bool Texture_Propagation::compare(Point2i i, Point2i j)
+float Texture_Propagation::gaussion_x(float x, float sigma)
 {
-	return level_map[i.y][i.x] > level_map[j.y][j.x];
+	return exp(-x*x  / (2 * sigma*sigma)) / (sigma*sqrt(2 * PI));
 }
 
-void Texture_Propagation::cal_level_map(int area_index, vector<Point2i>&points)
+void Texture_Propagation::cal_level_map(int area_index)
 {
 	int rows = mask.rows;
 	int cols = mask.cols;
-	int num_points = points.size();
-	//calculate the sigma 
 	double sum = 0;
 	vector<float> tmp;
-	for (int point_index = 0; point_index < num_points; point_index++) {
-		int row_index = points[point_index].y;
-		int col_index = points[point_index].x;
-		sum += confidence_map[row_index][col_index];
-		tmp.push_back(confidence_map[row_index][col_index]);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (ifpartition) {
+				if (area[i][j] != area_index)
+					continue;
+			}
+			sum += confidence_map[i][j];
+			tmp.push_back(confidence_map[i][j]);
+		}
 	}
-
 	double average = sum / tmp.size();
 	double sigma = 0;
 	for (int i = 0; i < tmp.size(); i++) {
@@ -160,16 +186,18 @@ void Texture_Propagation::cal_level_map(int area_index, vector<Point2i>&points)
 	random_device rd;
 	mt19937 gen(rd());
 	uniform_real_distribution<> rand(0, sigma);
-	//we select 20% of the max value points as the candidates
-
-	for (int point_index = 0; point_index < num_points; point_index++) {
-		int row_index = points[point_index].y;
-		int col_index = points[point_index].x;
-		if (confidence_map[row_index][col_index] > average) {
-			level_map[row_index][col_index] = 0;
-		}
-		else {
-			level_map[row_index][col_index] = confidence_map[row_index][col_index] + rand(gen);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (ifpartition) {
+				if (area[i][j] != area_index)
+					continue;
+			}
+			if (confidence_map[i][j] > average) {
+				level_map[i][j] = 0;
+			}
+			else {
+				level_map[i][j] = confidence_map[i][j] + rand(gen);
+			}
 		}
 	}
 
@@ -184,13 +212,14 @@ void Texture_Propagation::cal_level_map(int area_index, vector<Point2i>&points)
 			}
 			cout << endl;
 		}
-		cout << "average level_map value in the whole picture: " << sum / mask.rows / mask.cols << endl;
+		cout << "average: " << sum / mask.rows / mask.cols << endl;
 	}
 }
 
 void Texture_Propagation::extend_curve()
 {
 	vector<vector<Point2i>>& curves = sp->image.curve_points_copy;
+	Mat curve = srcImg.clone();
 	int curve_num = curves.size();
 	for (int i = 0; i < curve_num; i++) {
 		if (curves[i].size() > 4) {
@@ -199,6 +228,9 @@ void Texture_Propagation::extend_curve()
 			Point2i tmp1 = second_point - first_point;
 			while (inBoundary(first_point - tmp1)) {
 				first_point = first_point - tmp1;
+				if (area[first_point.y][first_point.x] == -1) {
+					break;
+				}
 				area[first_point.y][first_point.x] = -1;
 			}
 			Point2i last_point = curves[i][curves[i].size() - 1];
@@ -206,7 +238,15 @@ void Texture_Propagation::extend_curve()
 			Point2i tmp2 = se_last_point - last_point;
 			while (inBoundary(last_point - tmp2)) {
 				last_point = last_point - tmp2;
+				if (area[last_point.y][last_point.x] == -1) {
+					break;
+				}
 				area[last_point.y][last_point.x] = -1;
+			//	curve.at<Vec3b>(last_point.y, last_point.x) == Vec3b(0, 255, 0);
+			//	curve.at<Vec3b>(last_point.y, last_point.x-1) == Vec3b(0, 255, 0);
+			//	curve.at<Vec3b>(last_point.y, last_point.x + 1) == Vec3b(0, 255, 0);
+			//	imshow("curve", curve);
+			//	waitKey();
 			}
 		}
 	}
@@ -251,6 +291,19 @@ void Texture_Propagation::partition()
 			int curve_i_num = curves[i].size();
 			for (int j = 0; j < curve_i_num; j++) {
 				area[curves[i][j].y][curves[i][j].x] = -1;
+			}
+		}
+		int curve_size = sp->unknown_anchors.size();
+		for (int curve_index = 0; curve_index < curve_size; curve_index++) {
+			for (int anchor_index = 0; anchor_index < sp->unknown_anchors[curve_index].size(); anchor_index++) {
+				int  point_index = sp->unknown_anchors[curve_index][anchor_index].anchor_point;
+				Point2i left_top = sp->getLeftTopPoint(point_index, curve_index);
+				Point2i right_down = left_top + Point2i(PatchSizeCol, PatchSizeRow);
+				for (int i = left_top.y+1; i < right_down.y; i++) {
+					for (int j = left_top.x+1; j < right_down.x; j++) {
+						area[i][j] = -1;
+					}
+				}
 			}
 		}
 		//extend the curves to partition the area
@@ -368,13 +421,20 @@ void Texture_Propagation::partition()
 	ifpartition = true;
 	//statistic the number of each area
 	area_size = vector<int>(area_num + 1, 0);
+	area_unknown_size.assign(area_size.begin(), area_size.end());
 	for (int row_index = 0; row_index < mask.rows; row_index++) {
 		for (int col_index = 0; col_index < mask.cols; col_index++) {
 			int area_index = area[row_index][col_index];
-			area_size[area_index]++;
+			if (area_index > 0) {
+				area_size[area_index]++;
+				if (inMask(Point2i(col_index, row_index))) {
+					area_unknown_size[area_index]++;
+				}
+			}
+				
 		}
 	}
-	area_unknown_size.assign(area_size.begin(), area_size.end());
+	//show_partition();
 }
 
 void Texture_Propagation::show_partition()
@@ -403,7 +463,13 @@ void Texture_Propagation::show_partition_image()
 	for (int i = 0; i < partition.rows; i++) {
 		for (int j = 0; j < partition.cols; j++) {
 			int index = area[i][j];
-			partition.at<Vec3b>(i, j) = Vec3b(B[index], G[index], R[index]);
+			if (index == -1) {
+				partition.at<Vec3b>(i, j) = Vec3b(0, 0, 0);
+			}
+			else {
+				partition.at<Vec3b>(i, j) = Vec3b(B[index], G[index], R[index]);
+			}
+			
 		}
 	}
 	imwrite(path + "partition.png", partition);
@@ -418,24 +484,77 @@ void Texture_Propagation::init_original_pixel_map()
 	}
 	for (int row = 0; row < mask.rows; row++) {
 		for (int col = 0; col < mask.cols; col++) {
-			if (inMask(Point2i(row, col))) {
-				original_pixel_map[row][col] = Point2i(-1, -1);
+			////固定分配
+			Point p(col, row);
+			if (inMask(p)) {
+				original_pixel_map[row][col] = Point2i(-1,-1);
 			}
 			else {
-				original_pixel_map[row][col] = Point2i(row, col);
+				original_pixel_map[row][col] = p;
+			}
+			//下面是随机分配策略
+			//int x, y;
+			//do {
+			//	x = rand() % mask.cols;
+			//	y = rand() % mask.rows;
+			//} while (area[y][x] != area[row][col] || inMask(Point2i(x, y)));
+			//original_pixel_map[row][col] = Point2i(x, y);
+		}
+	}
+	if (ifshowOriginal_map) {
+		for (int row = 0; row < mask.rows; row++) {
+			cout << endl;
+			for (int col = 0; col < mask.cols; col++) {
+				cout << original_pixel_map[row][col];			
 			}
 		}
+	}
+	cout << endl;
+}
+
+void Texture_Propagation::show_patch(Point2i unknown,Point2i candidate)
+{
+	//int radius = 10;
+	//Point2i left_top = p - Point2i(radius, radius);
+	//Point2i right_down = left_top + Point2i(radius*2, radius*2);
+	//Rect rec(left_top, right_down);
+	Mat show = resImg.clone();
+	show.at<Vec3b>(unknown.y, unknown.x) = Vec3b(0, 255, 0);
+	show.at<Vec3b>(candidate.y, candidate.x) = Vec3b(0, 255, 0);
+	
+	//show.at<Vec3b>(candidate.y-1, candidate.x-1) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y, candidate.x - 1) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y - 1, candidate.x) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y + 1, candidate.x + 1) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y  , candidate.x + 1) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y + 1, candidate.x ) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y + 1, candidate.x - 1) = Vec3b(0, 0, 255);
+	//show.at<Vec3b>(candidate.y - 1, candidate.x + 1) = Vec3b(0, 0, 255);
+
+	imshow("patch", show);
+	waitKey();
+}
+
+void Texture_Propagation::show_mask()
+{
+	for (int i = 0; i < mask.rows; i++) {
+		for (int j = 0; j < mask.cols; j++) {
+			int  c = mask.at<uchar>(i, j);
+			cout << c << " " << " ";
+		}
+		cout << endl;
 	}
 }
 
 vector<Point2i> Texture_Propagation::get_unknown_points(int area_index)
 {
+	//show_partition();
 	vector<Point2i>points;
 	for (int row_index = mask_top; row_index <= mask_bottom; row_index++) {
 		for (int col_index = mask_left; col_index <= mask_right; col_index++) {
 			if (area[row_index][col_index] == area_index) {
-				if (inMask(Point2i(row_index, col_index))) {
-					points.push_back(Point2i(row_index, col_index));
+				if (inMask(Point2i(col_index, row_index))) {
+					points.push_back(Point2i(col_index, row_index));
 				}
 			}
 		}
@@ -443,43 +562,82 @@ vector<Point2i> Texture_Propagation::get_unknown_points(int area_index)
 	return points;
 }
 
-void Texture_Propagation::fill_one_pixel(Point2i unknown_point, int area_index)
+bool Texture_Propagation::fill_one_pixel(Point2i unknown_point, int area_index)
 {
 	vector<Point2i>neighbors;
-	set<Point2i>candidates;
-	get_candidates(unknown_point, neighbors,candidates, area_index);	
-	if (neighbors.size() == 0) {
-		//TODO
+	vector<Point2i>candidates;
+	int size_neighbors = sizeof_neighborhood/2+1;
+	int i = 0;		//the times that find the candidate of the unknown point
+	Point2i best_candidate(-1, -1);
+	do {
+		i++;
+		size_neighbors = size_neighbors * 2 - 1;
+		candidates.clear();
+		neighbors.clear();
+		get_candidates(unknown_point, neighbors, candidates, area_index, size_neighbors);
+		best_candidate = get_best_candidate(unknown_point, candidates);
+		cout << "find the unknown_point" << unknown_point << "for" << int_to_string(i) << "times" << endl;
+		if (i > 4)
+			return false;
+	} while (best_candidate == Point2i(-1, -1) || candidates.size() < sizeof_neighborhood);
+
+	if (resImg.at<Vec3b>(best_candidate.y, best_candidate.x) == Vec3b(0, 0, 255)) {
+		cout << unknown_point << "fuck it" << best_candidate << endl;
 	}
-	else {
-		Point2i best_candidate = get_best_candidate(candidates);
+	//copy the pixel
+
+	resImg.at<Vec3b>(unknown_point.y, unknown_point.x) = resImg.at<Vec3b>(best_candidate.y, best_candidate.x);
+
+	//show_patch(unknown_point,best_candidate);
+	//update the original_pixel_map and the mask
+	original_pixel_map[unknown_point.y][unknown_point.x] = best_candidate;
+	mask.at<uchar>(unknown_point.y, unknown_point.x) = 255;
+	//show_mask();
+	if (i > 1) {
+		if(i<3)
+			region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(255, 0, 0);
+		else
+			region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(0, 255, 255);
+	}
+	else{
+		region.at<Vec3b>(unknown_point.y, unknown_point.x) = Vec3b(0, 255, 0);
 	}
 
+	imshow("region", region);
+	imshow("to_show", resImg);
+	waitKey(1);
+	return true;
 }
 
-void Texture_Propagation::get_candidates(Point2i unknown_point, vector<Point2i> &neighbors,set<Point2i>&candidates,int area_index)
+void Texture_Propagation::get_candidates(Point2i unknown_point, vector<Point2i> &neighbors,vector<Point2i>&candidates,int area_index,int size)
 {
 	//L-shaped neighbors
 	int point_row = unknown_point.y;
 	int point_col = unknown_point.x;
-	int distance = sizeof_neighborhood / 2;
-	for (int row_index = point_row-sizeof_neighborhood/2; row_index < point_row; row_index++) {
-		for (int col_index = point_col - distance; col_index < point_col + distance; col_index++) {
-			if (row_index == point_row) {
-				if (col_index == point_col) {
-					break;
-				}
+	int distance = size / 2;
+
+	for (int row_index = point_row- distance; row_index <= point_row + distance; row_index++) {
+		for (int col_index = point_col - distance; col_index <= point_col + distance; col_index++) {
+			if (row_index == point_row&&col_index==point_col) {
+				continue;
 			}
-			Point2i neighbor_point(row_index, col_index);
-			if (inBoundary(neighbor_point)) {
+			Point2i neighbor_point(col_index, row_index);
+			//the neighbor must be valid 
+			if (inBoundary(neighbor_point) && !inMask(neighbor_point)) {
 				if (area[row_index][col_index] == area_index) {
 					neighbors.push_back(neighbor_point);
 					Point2i original_point = original_pixel_map[row_index][col_index];
-					Point2i candidate = original_point + unknown_point - neighbor_point;
+					Point2i candidate(-1, -1);
+					if (size != sizeof_neighborhood)
+						candidate = original_point;
+					else
+						candidate = original_point + unknown_point - neighbor_point;
 					//judge if the candidate is in the right area and in boundary
-					if (inBoundary(candidate)) {
+					if (inBoundary(candidate) && !inMask(candidate)) {
 						if (area[candidate.y][candidate.x] == area_index) {
-							candidates.insert(candidate);
+							if (find(candidates.begin(), candidates.end(), candidate) == candidates.end()) {
+								candidates.push_back(candidate);
+							}
 						}
 					}
 				}
@@ -489,38 +647,197 @@ void Texture_Propagation::get_candidates(Point2i unknown_point, vector<Point2i> 
 	}
 }
 
-Point2i Texture_Propagation::get_best_candidate(set<Point2i>& candidates)
+Point2i Texture_Propagation::get_best_candidate(Point2i unknown_point,vector<Point2i>& candidates)
 {
 	float min_L2_difference = FLT_MAX;
-	set<Point2i>::iterator it;
-	for (it = candidates.begin(); it != candidates.end(); it++) {
+	Point2i best_candidate(-1, -1);
+	vector<Point2i>::iterator it;
+	int point_row = unknown_point.y;
+	int point_col = unknown_point.x;
 
+	//for (int row = 0; row < mask.rows; row++) {
+	//	for (int col = 0; col < mask.cols; col++) {
+	//		int count = 0;
+	//		Point2i candidate_point = Point2i(col,row);
+	//		if (area[candidate_point.y][candidate_point.x] != area[unknown_point.y][unknown_point.x]||inMask(candidate_point)) {
+	//			continue;
+	//		}
+	//		int distance = sizeof_neighborhood / 2;
+	//		float L2_difference = 0;
+	//		for (int row_index = -distance; row_index <= distance; row_index++) {
+	//			for (int col_index = -distance; col_index <= distance; col_index++) {
+	//				if (row_index == 0 && col_index == 0) {
+	//					continue;
+	//				}
+	//				Point2i unknown_neighbor_point(col_index + unknown_point.x, row_index + unknown_point.y);
+	//				Point2i candidate_neighbor_point(col_index + candidate_point.x, row_index + candidate_point.y);
+	//				if (inBoundary(unknown_neighbor_point) && inBoundary(candidate_neighbor_point) && !inMask(unknown_neighbor_point) && !inMask(candidate_neighbor_point)) {
+	//					the two corresponding points both exist
+	//					count++;
+	//					if (srcImg.type() == CV_8UC3) {				//RGB picture
+	//						uchar u_R = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[2];
+	//						uchar u_G = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[1];
+	//						uchar u_B = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[0];
+
+	//						uchar c_R = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[2];
+	//						uchar c_G = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[1];
+	//						uchar c_B = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[0];
+	//						L2_difference += (u_R - c_R)*(u_R - c_R) + (u_B - c_B)*(u_B - c_B) + (u_G - c_G)*(u_G - c_G);
+	//					}
+	//					else if (srcImg.type() == CV_8UC1) {			//Gray picture	
+	//						uchar u_G = srcImg.at<uchar>(unknown_neighbor_point.y, unknown_neighbor_point.x);
+	//						uchar c_G = srcImg.at<uchar>(candidate_neighbor_point.y, candidate_neighbor_point.x);
+	//						L2_difference += (u_G - c_G)*(u_G - c_G);
+	//					}
+	//				}
+	//			}
+	//		}
+	//		if (count < SIZEOFNEIGHBORHOOD*SIZEOFNEIGHBORHOOD/4) {
+	//			return Point2i(-1, -1);
+	//		}
+	//		if (L2_difference == 0) {
+	//			cout << "error: the two points have no neighbor in common   " << "unknown_point:" << unknown_point << " candidate_point:" << candidate_point << endl;
+	//		}
+	//		else {
+	//			L2_difference /= count;
+	//			if (L2_difference < min_L2_difference) {
+	//				min_L2_difference = L2_difference;
+	//				best_candidate = candidate_point;
+	//			}
+	//		}
+	//	}
+	//}
+	for (it = candidates.begin(); it != candidates.end(); it++) {
+		int count = 0;
+		float ratio_sum = 0;
+		Point2i candidate_point = *it;
+		int distance = sizeof_neighborhood / 2;
+		float L2_difference = 0;
+		bool has_common_original = false;
+		int row_r = 0;
+		int col_r = 0;
+		bool is_equal = false;
+		for (int row_index =  - distance; row_index <= distance; row_index++) {
+			for (int col_index =  - distance; col_index <= distance; col_index++) {
+				if (row_index == 0 && col_index==0) {
+					continue;
+				}				
+				Point2i unknown_neighbor_point(col_index + unknown_point.x, row_index + unknown_point.y);
+				Point2i candidate_neighbor_point(col_index + candidate_point.x, row_index + candidate_point.y);
+				if (!inBoundary(unknown_neighbor_point) || !inBoundary(candidate_neighbor_point) || inMask(unknown_neighbor_point) || inMask(candidate_neighbor_point)) {
+					break;
+				}
+				//for debug
+				Point2i original_point = original_pixel_map[unknown_neighbor_point.y][unknown_neighbor_point.x];				
+				if (original_point == candidate_neighbor_point) {
+					has_common_original = true;
+					row_r = row_index;
+					col_r = col_index;
+					if (resImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x) == resImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)) {
+						is_equal = true;
+					}
+				}				
+				//the two corresponding points both exist
+				count++;
+
+				uchar u_R = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[2];
+				uchar u_G = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[1];
+				uchar u_B = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[0];
+
+				uchar c_R = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[2];
+				uchar c_G = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[1];
+				uchar c_B = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[0];
+				//normalized distance
+				float gaussian_d = sqrt((row_index*row_index + col_index * col_index) / (distance*distance));
+				float ratio = gaussion_x(gaussian_d);
+				ratio_sum += ratio;
+				L2_difference += sqrt((u_R - c_R)*(u_R - c_R) + (u_B - c_B)*(u_B - c_B) + (u_G - c_G)*(u_G - c_G))*ratio;
+			}
+		}
+		//if (count < SIZEOFNEIGHBORHOOD*SIZEOFNEIGHBORHOOD/4) {
+		//	return Point2i(-1, -1);
+		//}
+
+		//error
+		if (L2_difference == 0 && candidates.size()!=0) {
+			//cout << "error: the two points have no neighbor in common   " << "unknown_point:" << unknown_point << " candidate_point:" << candidate_point << endl;
+			//cout << "unknown:" << inMask(unknown_point) << " candidate:" << inMask(candidate_point) << endl;
+			//cout << "unknown:" << resImg.at<Vec3b>(unknown_point.y, unknown_point.x) << "candidate:" << resImg.at<Vec3b>(candidate_point.y, candidate_point.x) << endl;
+			//show_patch(unknown_point, candidate_point);
+			//for (int row_index = -distance; row_index <= distance; row_index++) {
+			//	for (int col_index = -distance; col_index <= distance; col_index++) {
+			//		if (row_index == 0 && col_index == 0) {
+			//			continue;
+			//		}
+			//		Point2i unknown_neighbor_point(col_index + unknown_point.x, row_index + unknown_point.y);
+			//		Point2i candidate_neighbor_point(col_index + candidate_point.x, row_index + candidate_point.y);
+			//		if (inBoundary(unknown_neighbor_point) && inBoundary(candidate_neighbor_point)) {
+			//			Point2i original_point = original_pixel_map[unknown_neighbor_point.y][unknown_neighbor_point.x];
+			//			bool equal = original_point == candidate_neighbor_point;
+			//			cout <<unknown_neighbor_point<<inMask(unknown_neighbor_point)<< original_point << inMask(unknown_neighbor_point) << candidate_neighbor_point << inMask(candidate_neighbor_point)<<"is equal:"<<equal << endl;
+
+			//		}
+			//	}
+			//}
+			//cout << endl;
+		}
+		else {
+			//nomalized
+			L2_difference /= ratio_sum;
+			if (L2_difference < min_L2_difference) {
+				min_L2_difference = L2_difference;
+				best_candidate = candidate_point;
+			}
+		}
 	}
+
+	if (best_candidate == Point2i(-1, -1) ) {
+		cout << "Warnning: no best candidate" << endl;	
+	}
+	return best_candidate;
 }
 
 void Texture_Propagation::synthesize_area_texture(int area_index)
 {
-	while (area_unknown_size[area_index] > 0) {
+	int radio_size=area_unknown_size[area_index] * level_set_radio;
+	vector<Point2i>unknown_points = get_unknown_points(area_index);
+	while (unknown_points.size() > 0) {
 		//select one pixel to find its original pixel
-		vector<Point2i>unknown_points;
-		update_confidence_map(area_index, unknown_points);
-		cal_level_map(area_index, unknown_points);
-		int candidate_size = area_size[area_index] * level_set_radio;
-		candidate_size = candidate_size > unknown_points.size() ? unknown_points.size() : candidate_size;
+		bool filled_it = true;
+		int count = 0;
+		unknown_points = get_unknown_points(area_index);
+		cout << "rest of unknown points:" << unknown_points.size()<< endl;
+		if (unknown_points.size() <= 0) {
+			break;
+		}
+		cal_level_map(area_index);
 		//the 0~candidate-1 th point in the unknown_points will be tht candidate to be fill
-		sort(unknown_points.begin(), unknown_points.end(), compare);
-		
+		//int candidate_size = radio_size > unknown_points.size() ? unknown_points.size() : radio_size;
+		vector<l_point>temp;
+		for (int i = 0; i < unknown_points.size(); i++) {
+			l_point lp(unknown_points[i]);
+			temp.push_back(lp);
+		}
+		sort(temp.begin(), temp.end());
+		unknown_points.clear();
+		for (int i = 0; i < temp.size(); i++) {
+			Point2i point(temp[i].x, temp[i].y);
+			unknown_points.push_back(point);
+		}
+		int candidate_size = unknown_points.size();
 		//search the original pixel of the unknown points
 		for (int point_index = 0; point_index < candidate_size; point_index++) {
 			Point2i unknown_point = unknown_points[point_index];
-			fill_one_pixel(unknown_point, area_index);
+			//to judge if the pixel has been filled successfullly
+  			filled_it=fill_one_pixel(unknown_point, area_index);
+			if(filled_it==false)
+				count++;
 		}
-		area_unknown_size[area_index] -= candidate_size;
-		if (area_unknown_size[area_index] < 0) {
-			cout << "Error in synthesize_area_texture:no enough points in the area " + area_index << endl;
+		update_confidence_map(area_index, unknown_points);
+		if (count > 0) {
+			cout << "failed to fill " << int_to_string(count) << " points" << endl;
 		}
 	}
-
 }
 
 void Texture_Propagation::synthesize_texture()
@@ -528,12 +845,14 @@ void Texture_Propagation::synthesize_texture()
 	init_gaussian_kernel(Gaussian_kernel_size);
 	init_confidence_map();
 	partition();				//partition the whole picture
+	show_partition_image();
 	init_original_pixel_map();	//init the original pixel map
-
+	
 	for (int area_index = 1; area_index <= area_num; area_index++) {
 		synthesize_area_texture(area_index);
+		imwrite(path+"syn_texture"+int_to_string(area_index)+".png", resImg);
 	}
-	
+	//resImg = natGenerate(resImg, mask, 3);
+	imshow("syn_texture", resImg);
+	imwrite(path+"syn_texture.png", resImg);
 }
-
-

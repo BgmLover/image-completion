@@ -1,4 +1,4 @@
-#include"math_function.h"
+﻿#include"math_function.h"
 #include"param.h"
 #include<limits>
 float calcuSSD(Mat m1, Mat m2) {
@@ -76,4 +76,12 @@ bool contain(Rect &rec, Point2i &p) {
 		return true;
 	}
 	return false;
+}
+
+string int_to_string(int i)
+{
+	stringstream ss;
+	ss << i;
+	string s=ss.str();
+	return s;
 }

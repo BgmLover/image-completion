@@ -1,4 +1,4 @@
-#include<opencv2\opencv.hpp>
+﻿#include<opencv2\opencv.hpp>
 #include<iostream>
 #include"Structure_propagation.h"
 #include"Texture_Propagation.h"
@@ -7,17 +7,17 @@
 using namespace cv;
 using namespace std;
 void test(){
-	//Mat a = imread("test1.jpg");
 	string path = "test_data/";
-	//Mat a = imread(path+"test1.jpg");
-	Mat a = imread(path + "test3.bmp");
+	Mat a = imread(path + "test1_half.jpg");
+	//Mat a = imread(path+"test1_half.jpg");
+	//Mat a = imread(path + "test3.bmp");
 	Structure_propagation s(a);
 	s.getMask();
 	s.getCurves();
 	s.getAnchors();
 	s.drawAnchors();
 	//s.testOneCurve();
-	//s.getNewStructure();
+	s.getNewStructure();
 	Texture_Propagation tp(&s);
 	//tp.partition();
 	//tp.show_partition_image();
@@ -97,6 +97,13 @@ void test6() {
 	std::cout << std::endl;
 	getchar();
 	getchar();
+}
+void test7() {
+	Point2i p1(1, 1);
+	Point2i p2(1, 1);
+	bool e = p1 == p2;
+	cout << e << endl;
+	cout << endl;
 }
 int main() {
 	test();

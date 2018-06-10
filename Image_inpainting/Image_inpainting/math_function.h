@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<opencv2\opencv.hpp>
 #include<iostream>
 #include"param.h"
@@ -16,3 +16,4 @@ void minusArray(float*a, float*b, float *c,int num);
 bool isEqualArray(float *a, float*b, int num);
 void moveArray(float*a, float*b, int num);
 bool contain(Rect &rec, Point2i &p);
+string int_to_string(int i);

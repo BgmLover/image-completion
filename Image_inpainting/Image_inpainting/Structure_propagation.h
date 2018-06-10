@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"Image.h"
 #include"AnchorPoint.h"
 #include<opencv2\opencv.hpp>
@@ -23,7 +23,7 @@ private:
 
 	Point2i getAnchorPoint(AnchorPoint ap, int curve_index);
 	Rect getRect(AnchorPoint ap, int curve_index);
-	Rect getRect(Point2i p);
+	
 	Mat getOnePatch(Point2i p,Mat &img);
 	Mat getOnePatch(AnchorPoint ap, Mat &img, int curve_index);
 	void copyPatchToImg(AnchorPoint unknown, Mat &patch, Mat &img, int curve_index);
@@ -65,4 +65,5 @@ public:
 	//tool function
 	Point2i getLeftTopPoint(int point_index, int curve_index);
 	Point2i getLeftTopPoint(Point2i p);
+	Rect getRect(Point2i p);
 };

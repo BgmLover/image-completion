@@ -1,4 +1,4 @@
-#include"Structure_propagation.h"
+﻿#include"Structure_propagation.h"
 #include"math_function.h"
 #include"debug.h"
 //for debug
@@ -447,6 +447,9 @@ void Structure_propagation::mergeCurves(vector<bool>&isSingle) {
 
 void Structure_propagation::getOneNewCurve(vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample, int curve_index, bool flag) {
 	vector<int>label;
+	if (sample.size() == 0) {
+		return;
+	}
 	if (flag) {
 		label = DP(unknown, sample, curve_index);
 	}
@@ -461,10 +464,6 @@ void Structure_propagation::getOneNewCurve(vector<AnchorPoint>&unknown, vector<A
 		Mat patch = getOnePatch(sample[label[i]], image.srcImage, curve_index);
 		copyPatchToImg(unknown[i], patch, image.image_inpainted, curve_index);	
 	}
-
-	//for (int i = 0; i < unknown_anchors[0].size(); i++) {
-	//	cout << getAnchorPoint(unknown_anchors[0][i], 0) << endl;
-	//}
 }
 
 
@@ -668,42 +667,6 @@ void Structure_propagation::getOneCurveAnchors(int curve_index, vector<AnchorPoi
 	else {
 		sample.pop_back();
 	}
-	//PointType type;
-	//int last_index = 0;
-	//int now_index = 0;
-	//
-	//bool flag = true;
-	//while (true) {
-
-	//	now_index = getOneAnchorPos(last_index, type, curve_index,flag,unknown,sample);
-
-	//	if (now_index >= image.curve_points[curve_index].size() - 1)
-	//		break;
-
-	//	if (last_index != 0) {
-	//		if (flag)
-	//			sample[sample.size() - 1].end_point = now_index-1;
-	//		else
-	//			unknown[unknown.size() - 1].end_point = now_index-1;
-	//	}
-	//	AnchorPoint anchor(last_index+1, now_index, now_index, type);
-	//	if (anchor.type == OUTER){
-	//		sample.push_back(anchor);
-	//		flag = true;
-	//	}
-	//	else {
-	//		unknown.push_back(anchor);
-	//		flag = false;
-	//	}
-
-	//	last_index = now_index;
-	//}
-
-	///*the last sample patch does't have enough points on the curve,  so we need to abort it in case that when calculating energy Es,
-	//the result will be much more little than other patches and influence chooing the right patch
-	//*/
-	//if(sample.size()>0)
-	//	sample.pop_back();
 }
 
 int Structure_propagation::getOneAnchorPos(int lastanchor_index, PointType &t, int curve_index,bool flag, vector<AnchorPoint>&unknown, vector<AnchorPoint>&sample){
