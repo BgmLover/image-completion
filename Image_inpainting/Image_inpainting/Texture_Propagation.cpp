@@ -655,58 +655,6 @@ Point2i Texture_Propagation::get_best_candidate(Point2i unknown_point,vector<Poi
 	int point_row = unknown_point.y;
 	int point_col = unknown_point.x;
 
-	//for (int row = 0; row < mask.rows; row++) {
-	//	for (int col = 0; col < mask.cols; col++) {
-	//		int count = 0;
-	//		Point2i candidate_point = Point2i(col,row);
-	//		if (area[candidate_point.y][candidate_point.x] != area[unknown_point.y][unknown_point.x]||inMask(candidate_point)) {
-	//			continue;
-	//		}
-	//		int distance = sizeof_neighborhood / 2;
-	//		float L2_difference = 0;
-	//		for (int row_index = -distance; row_index <= distance; row_index++) {
-	//			for (int col_index = -distance; col_index <= distance; col_index++) {
-	//				if (row_index == 0 && col_index == 0) {
-	//					continue;
-	//				}
-	//				Point2i unknown_neighbor_point(col_index + unknown_point.x, row_index + unknown_point.y);
-	//				Point2i candidate_neighbor_point(col_index + candidate_point.x, row_index + candidate_point.y);
-	//				if (inBoundary(unknown_neighbor_point) && inBoundary(candidate_neighbor_point) && !inMask(unknown_neighbor_point) && !inMask(candidate_neighbor_point)) {
-	//					the two corresponding points both exist
-	//					count++;
-	//					if (srcImg.type() == CV_8UC3) {				//RGB picture
-	//						uchar u_R = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[2];
-	//						uchar u_G = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[1];
-	//						uchar u_B = srcImg.at<Vec3b>(unknown_neighbor_point.y, unknown_neighbor_point.x)[0];
-
-	//						uchar c_R = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[2];
-	//						uchar c_G = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[1];
-	//						uchar c_B = srcImg.at<Vec3b>(candidate_neighbor_point.y, candidate_neighbor_point.x)[0];
-	//						L2_difference += (u_R - c_R)*(u_R - c_R) + (u_B - c_B)*(u_B - c_B) + (u_G - c_G)*(u_G - c_G);
-	//					}
-	//					else if (srcImg.type() == CV_8UC1) {			//Gray picture	
-	//						uchar u_G = srcImg.at<uchar>(unknown_neighbor_point.y, unknown_neighbor_point.x);
-	//						uchar c_G = srcImg.at<uchar>(candidate_neighbor_point.y, candidate_neighbor_point.x);
-	//						L2_difference += (u_G - c_G)*(u_G - c_G);
-	//					}
-	//				}
-	//			}
-	//		}
-	//		if (count < SIZEOFNEIGHBORHOOD*SIZEOFNEIGHBORHOOD/4) {
-	//			return Point2i(-1, -1);
-	//		}
-	//		if (L2_difference == 0) {
-	//			cout << "error: the two points have no neighbor in common   " << "unknown_point:" << unknown_point << " candidate_point:" << candidate_point << endl;
-	//		}
-	//		else {
-	//			L2_difference /= count;
-	//			if (L2_difference < min_L2_difference) {
-	//				min_L2_difference = L2_difference;
-	//				best_candidate = candidate_point;
-	//			}
-	//		}
-	//	}
-	//}
 	for (it = candidates.begin(); it != candidates.end(); it++) {
 		int count = 0;
 		float ratio_sum = 0;
