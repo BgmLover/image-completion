@@ -4,14 +4,14 @@ using namespace std;
 
 #define LINE_CURVE 1
 #define PENCIL_CURVE 2
-#define MASK_SIZE 20
-#define CURVE_SIZE 3
+#define MASK_SIZE 40
+#define CURVE_SIZE 6
 
 //in Structure_Propagation
 #define KS 50
 #define KI 2
-#define PatchSizeRow 12
-#define PatchSizeCol 12
+#define PatchSizeRow 13
+#define PatchSizeCol 13
 
 
 //in Texture_Propagation

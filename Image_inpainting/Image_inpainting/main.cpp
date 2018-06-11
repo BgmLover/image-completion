@@ -2,13 +2,14 @@
 #include<iostream>
 #include"Structure_propagation.h"
 #include"Texture_Propagation.h"
+#include"Photometric_Correction.h"
 #include"param.h"
 #include<math.h>
 using namespace cv;
 using namespace std;
 void test(){
 	string path = "test_data/";
-	Mat a = imread(path + "test1_half.jpg");
+	Mat a = imread(path + "test2.jpg");
 	//Mat a = imread(path+"test1_half.jpg");
 	//Mat a = imread(path + "test3.bmp");
 	Structure_propagation s(a);
@@ -103,7 +104,27 @@ void test7() {
 	Point2i p2(1, 1);
 	bool e = p1 == p2;
 	cout << e << endl;
-	cout << endl;
+	cout << endl; 
+}
+void test9() {
+	Mat src, dst, mask;
+	dst = imread("test_data/3.jpg");
+	src = imread("test_data/src.png");
+	mask = imread("test_data/3_mask.png");
+	//Mat mask, gray;
+	//cvtColor(src, gray, CV_BGR2GRAY);
+	//threshold(gray, mask, 150, 255, THRESH_BINARY || THRESH_OTSU);
+	//Mat element = getStructuringElement(MORPH_RECT, Size(10, 10), Point(-1, -1));
+	//dilate(mask, mask, element);
+	imshow("src", src);
+	imshow("dst", dst);
+	imshow("mask", mask);
+	//waitKey(0);
+	Mat blend;
+	seamlessClone(src, dst, mask, Point(dst.cols/2, dst.rows/2), blend, NORMAL_CLONE);
+
+	imshow("blend", blend);
+	waitKey(0);
 }
 int main() {
 	test();

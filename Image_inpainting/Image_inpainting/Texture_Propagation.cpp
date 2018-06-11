@@ -300,8 +300,8 @@ void Texture_Propagation::partition()
 				int  point_index = sp->unknown_anchors[curve_index][anchor_index].anchor_point;
 				Point2i left_top = sp->getLeftTopPoint(point_index, curve_index);
 				Point2i right_down = left_top + Point2i(PatchSizeCol, PatchSizeRow);
-				for (int i = left_top.y+1; i < right_down.y; i++) {
-					for (int j = left_top.x+1; j < right_down.x; j++) {
+				for (int i = left_top.y; i < right_down.y; i++) {
+					for (int j = left_top.x; j < right_down.x; j++) {
 						area[i][j] = -1;
 					}
 				}
@@ -598,14 +598,14 @@ bool Texture_Propagation::fill_one_pixel(Point2i unknown_point, int area_index)
 		neighbors.clear();
 		get_candidates(unknown_point, neighbors, candidates, area_index, size_neighbors);
 		best_candidate = get_best_candidate(unknown_point, candidates);
-		cout << "find the unknown_point" << unknown_point << "for" << int_to_string(i) << "times" << endl;
+		//cout << "find the unknown_point" << unknown_point << "for" << int_to_string(i) << "times" << endl;
 		if (i > 4)
 			return false;
 	} while (best_candidate == Point2i(-1, -1) || candidates.size() ==0);
 
-	if (resImg.at<Vec3b>(best_candidate.y, best_candidate.x) == Vec3b(0, 0, 255)) {
-		cout << unknown_point << "fuck it" << best_candidate << endl;
-	}
+	//if (resImg.at<Vec3b>(best_candidate.y, best_candidate.x) == Vec3b(0, 0, 255)) {
+	//	cout << unknown_point << "fuck it" << best_candidate << endl;
+	//}
 	//copy the pixel
 
 	resImg.at<Vec3b>(unknown_point.y, unknown_point.x) = resImg.at<Vec3b>(best_candidate.y, best_candidate.x);
@@ -776,7 +776,7 @@ void Texture_Propagation::synthesize_area_texture(int area_index)
 		bool filled_it = true;
 		int count = 0;
 		unknown_points = get_unknown_points(area_index);
-		cout << "rest of unknown points:" << unknown_points.size()<< endl;
+		//cout << "rest of unknown points:" << unknown_points.size()<< endl;
 		if (unknown_points.size() <= 0) {
 			break;
 		}

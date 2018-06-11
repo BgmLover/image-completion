@@ -733,7 +733,9 @@ Mat Structure_propagation::getOnePatch(AnchorPoint ap, Mat &img, int curve_index
 void Structure_propagation::copyPatchToImg(AnchorPoint unknown, Mat &patch, Mat &img, int curve_index) {
 	Rect rec = getRect(unknown, curve_index);
 	//need to be correct ,to be done
-	patch.copyTo(img(rec));
+	Mat correct_patch = patch.clone();
+	Mat blend=pc->correct(correct_patch, img,rec);
+	blend.copyTo(img(rec));
 }
 
 Point2i Structure_propagation::getLeftTopPoint(int point_index, int curve_index) {

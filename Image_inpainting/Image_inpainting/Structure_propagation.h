@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include"Image.h"
 #include"AnchorPoint.h"
+#include"Photometric_Correction.h"
 #include<opencv2\opencv.hpp>
 #include<vector>
 using namespace cv;
@@ -51,11 +52,11 @@ public:
 	Image image;
 	vector<vector<AnchorPoint>> unknown_anchors;
 	vector<vector<AnchorPoint>> sample_anchors;
-
+	Photometric_Correction *pc;
 	Structure_propagation() = default;
-	Structure_propagation(Mat src) { image = *(new Image(src));}
+	Structure_propagation(Mat src) { image = *(new Image(src));  }
 	void getMask() { image.getMask(); }
-	void getCurves() { image.getCurves(); }
+	void getCurves() { image.getCurves(); pc = (new Photometric_Correction(this->image.mask));}
 	void getAnchors();
 	void drawAnchors();
 	void getNewStructure();
